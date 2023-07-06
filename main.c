@@ -191,8 +191,41 @@ Test(gdvector_free, deallocates_structure) {
 
     gdvector_free(vector);
 
-    printf("%d\n", old_dispatches);
-    printf("%d\n", dispatches);
-
     cr_assert(old_dispatches + 2 == dispatches, "Dispatches should be incremented by two.");
+}
+
+Test(gdvector_get, gets_item_successfully) {
+    gdvector *vector = gdvector_init(NULL);
+
+    int *item1 = safe_malloc(sizeof(int));
+    int *item2 = safe_malloc(sizeof(int));
+    *item1 = 72;
+    *item2 = 76;
+
+    gdvector_push_back(vector, item1);
+    gdvector_push_back(vector, item2);
+
+    int *ptr1 = gdvector_get(vector, 0);
+    int *ptr2 = gdvector_get(vector, 1);
+
+    cr_assert(*ptr1 == 72);
+    cr_assert(*ptr2 == 76);
+}
+
+Test(gdvector_get, returns_null_if_index_is_invalid) {
+    gdvector *vector = gdvector_init(NULL);
+
+    int *item1 = safe_malloc(sizeof(int));
+    int *item2 = safe_malloc(sizeof(int));
+    *item1 = 72;
+    *item2 = 76;
+
+    gdvector_push_back(vector, item1);
+    gdvector_push_back(vector, item2);
+
+    int *ptr1 = gdvector_get(vector, -1);
+    int *ptr2 = gdvector_get(vector, 3);
+
+    cr_assert(ptr1 == NULL);
+    cr_assert(ptr2 == NULL);
 }

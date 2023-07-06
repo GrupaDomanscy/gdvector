@@ -12,6 +12,8 @@ gdvector *gdvector_init(void (*remove_action)(void *item));
 
 void gdvector_push_back(gdvector *vector, void *item);
 
+void *gdvector_get(gdvector *vector, int index);
+
 int gdvector_set(gdvector *vector, int index, void *item);
 
 int gdvector_remove(gdvector *vector, int index);

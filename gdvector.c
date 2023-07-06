@@ -20,6 +20,12 @@ gdvector *gdvector_init(void (*remove_action)(void *item)) {
     return vector;
 }
 
+void *gdvector_get(gdvector *vector, int index) {
+    if (index < 0 || index > vector->allocated_items - 1) return NULL;
+
+    return vector->items[index];
+}
+
 void gdvector_push_back(gdvector *vector, void *item) {
     if (vector->allocated_items == 0) {
         // If there is nothing allocated (no items in vector)
