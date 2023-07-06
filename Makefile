@@ -1,4 +1,4 @@
-lib_version = 0.0.1
+lib_version = 1.0.0
 
 all:
 	make clean
