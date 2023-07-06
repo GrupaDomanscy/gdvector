@@ -14,6 +14,8 @@ void gdvector_push_back(gdvector *vector, void *item);
 
 void *gdvector_get(gdvector *vector, int index);
 
+int gdvector_length(gdvector *vector);
+
 int gdvector_set(gdvector *vector, int index, void *item);
 
 int gdvector_remove(gdvector *vector, int index);

@@ -229,3 +229,22 @@ Test(gdvector_get, returns_null_if_index_is_invalid) {
     cr_assert(ptr1 == NULL);
     cr_assert(ptr2 == NULL);
 }
+
+Test(gdvector_length, gets_length_successfully) {
+    gdvector *vector = gdvector_init(NULL);
+
+    int *item1 = safe_malloc(sizeof(int));
+    int *item2 = safe_malloc(sizeof(int));
+    *item1 = 72;
+    *item2 = 76;
+
+    cr_assert(gdvector_length(vector) == 0, "Vector length should be equal to 0.");
+    gdvector_push_back(vector, item1);
+    cr_assert(gdvector_length(vector) == 1, "Vector length should be equal to 1.");
+    gdvector_push_back(vector, item2);
+    cr_assert(gdvector_length(vector) == 2, "Vector length should be equal to 2.");
+    gdvector_remove(vector, 0);
+    cr_assert(gdvector_length(vector) == 1, "Vector length should be equal to 1.");
+    gdvector_remove(vector, 0);
+    cr_assert(gdvector_length(vector) == 0, "Vector length should be equal to 0.");
+}

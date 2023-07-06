@@ -26,6 +26,10 @@ void *gdvector_get(gdvector *vector, int index) {
     return vector->items[index];
 }
 
+int gdvector_length(gdvector *vector) {
+    return vector->allocated_items;
+}
+
 void gdvector_push_back(gdvector *vector, void *item) {
     if (vector->allocated_items == 0) {
         // If there is nothing allocated (no items in vector)
