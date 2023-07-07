@@ -26,6 +26,16 @@ void *gdvector_get(gdvector *vector, int index) {
     return vector->items[index];
 }
 
+int gdvector_find_index(gdvector *vector, void *searched_ptr, search_function search_function) {
+    for (int i = 0; i < gdvector_length(vector); i++) {
+        if (search_function(gdvector_get(vector, i), searched_ptr) == 1) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 int gdvector_length(gdvector *vector) {
     return vector->allocated_items;
 }

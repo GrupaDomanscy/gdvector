@@ -248,3 +248,20 @@ Test(gdvector_length, gets_length_successfully) {
     gdvector_remove(vector, 0);
     cr_assert(gdvector_length(vector) == 0, "Vector length should be equal to 0.");
 }
+
+int search_func(void *item_ptr, void *searched_item_ptr) {
+    return strcmp(item_ptr, searched_item_ptr) == 0;
+}
+
+Test(gdvector_find_index, finds_index_of_item) {
+    gdvector *vector = gdvector_init(NULL);
+
+    gdvector_push_back(vector, "Hello");
+    gdvector_push_back(vector, "World");
+    gdvector_push_back(vector, "Hello world!");
+
+    cr_assert(gdvector_find_index(vector, "Hello world!", search_func) == 2, "Return value of this function should be 2.");
+    cr_assert(gdvector_find_index(vector, "World", search_func) == 1, "Return value of this function should be 1.");
+    cr_assert(gdvector_find_index(vector, "Hello", search_func) == 0, "Return value of this function should be 0.");
+    cr_assert(gdvector_find_index(vector, "Other value", search_func) == -1, "Return value of this function should be -1.");
+}
