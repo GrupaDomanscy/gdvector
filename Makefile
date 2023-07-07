@@ -1,4 +1,8 @@
-lib_version = 1.0.0
+major_version = 1
+minor_version = 1
+patch_version = 0
+
+lib_version = $(major_version).$(minor_version).$(patch_version)
 
 all:
 	make clean
@@ -15,10 +19,10 @@ test:
 
 
 install:
-	rm -rf /usr/lib64/libgdvector.$(lib_version).so /usr/lib64/libgdvector.1.so /usr/lib64/libgdvector.so
+	rm -rf /usr/lib64/libgdvector.$(lib_version).so /usr/lib64/libgdvector.$(major_version).so /usr/lib64/libgdvector.so
 	rm -rf /usr/include/gdvector.h
 	cp build/libgdvector.$(lib_version).so /usr/lib64/libgdvector.$(lib_version).so
-	ln -s /usr/lib64/libgdvector.$(lib_version).so /usr/lib64/libgdvector.1.so
+	ln -s /usr/lib64/libgdvector.$(lib_version).so /usr/lib64/libgdvector.$(major_version).so
 	ln -s /usr/lib64/libgdvector.$(lib_version).so /usr/lib64/libgdvector.so
 	cp build/gdvector.h /usr/include/gdvector.h
 
