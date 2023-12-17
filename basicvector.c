@@ -1,110 +1,21 @@
-#include <stddef.h>
-#include <string.h>
-#include <gdalloc.h>
-#include "gdvector.h"
+#include <stdlib.h>
+struct basicvector_s {
+    void *starting_item;
+    int cached_length;
+};
 
-void default_remove_action(void *item) {
-    free(item);
-}
+int basicvector_init(struct basicvector_s **vector) {
+    struct basicvector_s *new_vector = malloc(sizeof(struct basicvector_s));
 
-gdvector *gdvector_init(void (*remove_action)(void *item)) {
-    gdvector *vector = safe_malloc(sizeof(gdvector));
-    vector->items = NULL;
-    vector->allocated_items = 0;
-
-    if (remove_action == NULL) {
-        remove_action = default_remove_action;
+    if (new_vector == NULL) {
+        return -1;
     }
 
-    vector->remove_action = remove_action;
-    return vector;
-}
+    new_vector->cached_length = 0;
+    new_vector->starting_item = NULL;
 
-void *gdvector_get(gdvector *vector, int index) {
-    if (index < 0 || index > vector->allocated_items - 1) return NULL;
-
-    return vector->items[index];
-}
-
-int gdvector_find_index(gdvector *vector, void *searched_ptr, search_function search_function) {
-    for (int i = 0; i < gdvector_length(vector); i++) {
-        if (search_function(gdvector_get(vector, i), searched_ptr) == 1) {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int gdvector_length(gdvector *vector) {
-    return vector->allocated_items;
-}
-
-void gdvector_push_back(gdvector *vector, void *item) {
-    if (vector->allocated_items == 0) {
-        // If there is nothing allocated (no items in vector)
-        vector->items = safe_malloc(8);
-        vector->allocated_items = 1;
-        vector->items[0] = item;
-    } else {
-        // If there is something allocated (items in vector)
-        vector->allocated_items += 1;
-        vector->items = safe_realloc(vector->items, vector->allocated_items * 8);
-        vector->items[vector->allocated_items - 1] = item;
-    }
-}
-
-int gdvector_set(gdvector *vector, int index, void *item) {
-    if (index > vector->allocated_items - 1 || index <= -1) return -1;
-
-    vector->remove_action(vector->items[index]);
-    vector->items[index] = item;
+    *vector = new_vector;
 
     return 0;
 }
 
-int gdvector_remove(gdvector *vector, int index) {
-    // if index is out of every possible values, return -1
-    if (index < 0) return -1;
-    if (index > vector->allocated_items - 1) return -1;
-
-    if (vector->allocated_items == 1) {
-        // If index is the last item and there is only one item in vector, deallocate last item,
-        // internal array and set allocated items to 0.
-        vector->allocated_items = 0;
-        vector->remove_action(vector->items[0]);
-        free(vector->items);
-        vector->items = NULL;
-
-        return 0;
-    } else if (index == vector->allocated_items - 1) {
-        // If index is the last item, but not only one in vector, deallocate lsat item and
-        // reallocate internal array to smaller size
-        vector->allocated_items -= 1;
-        vector->remove_action(vector->items[0]);
-        vector->items = safe_realloc(vector->items, vector->allocated_items * 8);
-
-        return 0;
-    } else {
-        vector->remove_action(vector->items[index]);
-
-        memmove(vector->items + index,
-                vector->items + index + 1,
-                (vector->allocated_items - index - 1) * 8);
-
-        vector->allocated_items -= 1;
-
-        vector->items = safe_realloc(vector->items, vector->allocated_items * 8);
-
-        return 0;
-    }
-}
-
-void gdvector_free(gdvector *vector) {
-    for (int i = 0; i < vector->allocated_items; i++) {
-        vector->remove_action(vector->items[i]);
-    }
-
-    free(vector->items);
-    free(vector);
-}
