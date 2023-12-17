@@ -1,29 +1,30 @@
-#ifndef GDVECTOR_VECTOR_H_
-#define GDVECTOR_VECTOR_H_
+#ifndef BASICVECTOR_VECTOR_H_
+#define BASICVECTOR_VECTOR_H_
 
-typedef int (*search_function)(void *ptr, void *searched_ptr);
+struct basicvector_s;
 
-typedef struct {
-    int allocated_items;
-    void **items;
+typedef bool (*basicvector_search_function)(void *user_data, void *item);
 
-    void (*remove_action)(void *item);
-} gdvector;
+// Initialize basicvector
+int basicvector_init(struct basicvector_s **vector);
 
-gdvector *gdvector_init(void (*remove_action)(void *item));
+void basicvector_push(struct basicvector_s *vector, void *item);
 
-void gdvector_push_back(gdvector *vector, void *item);
+void *basicvector_get(struct basicvector_s *vector, int index);
 
-void *gdvector_get(gdvector *vector, int index);
+int basicvector_find_index(
+    struct basicvector_s *vector, 
+    void *searched_ptr, 
+    basicvector_search_function search_function, 
+    void *user_data
+);
 
-int gdvector_find_index(gdvector *vector, void *searched_ptr, search_function search_function);
+int basicvector_length(struct basicvector_s *vector);
 
-int gdvector_length(gdvector *vector);
+int basicvector_set(struct basicvector_s *vector, int index, void *item);
 
-int gdvector_set(gdvector *vector, int index, void *item);
+int basicvector_remove(struct basicvector_s *vector, int index);
 
-int gdvector_remove(gdvector *vector, int index);
+void basicvector_free(struct basicvector_s *vector);
 
-void gdvector_free(gdvector *vector);
-
-#endif //GDVECTOR_VECTOR_H_
+#endif //BASICVECTOR_VECTOR_H_
