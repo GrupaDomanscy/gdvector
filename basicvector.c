@@ -11,11 +11,15 @@ struct basicvector_entry_s {
     void *next_entry;
 };
 
+extern int BASICVECTOR_SUCCESS;
+extern int BASICVECTOR_MEMORY_ERROR;
+extern int BASICVECTOR_ITEM_NOT_FOUND;
+
 int basicvector_init(struct basicvector_s **vector) {
     struct basicvector_s *new_vector = malloc(sizeof(struct basicvector_s));
 
     if (new_vector == NULL) {
-        return -1;
+        return BASICVECTOR_MEMORY_ERROR;
     }
 
     new_vector->cached_length = 0;
@@ -23,7 +27,7 @@ int basicvector_init(struct basicvector_s **vector) {
 
     *vector = new_vector;
 
-    return 0;
+    return BASICVECTOR_SUCCESS;
 }
 
 struct basicvector_entry_s *basicvector_internal_find_last_item(struct basicvector_s* vector) {
@@ -48,7 +52,7 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
     struct basicvector_entry_s *entry = malloc(sizeof(struct basicvector_entry_s));
 
     if (entry == NULL) {
-        return -1;
+        return BASICVECTOR_MEMORY_ERROR;
     }
 
     vector->cached_length += 1;
@@ -64,13 +68,13 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
         last_entry->next_entry = entry;
     }
 
-    return 0;
+    return BASICVECTOR_SUCCESS;
 }
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     if (index > vector->cached_length - 1) {
         *result = NULL;
-        return -1;
+        return BASICVECTOR_ITEM_NOT_FOUND;
     }
 
     struct basicvector_entry_s *entry = vector->starting_entry;
@@ -80,7 +84,7 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     }
 
     *result = entry;
-    return 0;
+    return BASICVECTOR_SUCCESS;
 }
 
 int basicvector_find_index(
@@ -90,21 +94,21 @@ int basicvector_find_index(
     void *user_data
 ) {
     if (vector->starting_entry == NULL) {
-        *result = -1;
-        return -1;
+        *result = BASICVECTOR_ITEM_NOT_FOUND;
+        return BASICVECTOR_ITEM_NOT_FOUND;;
     }
 
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
 
     for (int i = 0;;i++) {
         if (search_function(user_data, examined_entry->item)) {
-            *result = i;
-            return 0;
+            *result = BASICVECTOR_SUCCESS;
+            return BASICVECTOR_SUCCESS;
         }
 
         examined_entry = examined_entry->next_entry;
     }
 
-    *result = -1;
-    return -1;
+    *result = BASICVECTOR_ITEM_NOT_FOUND;
+    return BASICVECTOR_ITEM_NOT_FOUND;
 }

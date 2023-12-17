@@ -1,6 +1,10 @@
 #ifndef BASICVECTOR_VECTOR_H_
 #define BASICVECTOR_VECTOR_H_
 
+#define BASICVECTOR_SUCCESS 0
+#define BASICVECTOR_MEMORY_ERROR -1
+#define BASICVECTOR_ITEM_NOT_FOUND -2
+
 struct basicvector_s;
 
 typedef bool (*basicvector_search_function)(void *user_data, void *item);
