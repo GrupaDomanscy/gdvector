@@ -51,6 +51,8 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
         return -1;
     }
 
+    vector->cached_length += 1;
+
     entry->item = item;
     entry->next_entry = NULL;
 
@@ -80,3 +82,4 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     *result = entry;
     return 0;
 }
+
