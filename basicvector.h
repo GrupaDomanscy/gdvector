@@ -8,7 +8,7 @@ typedef bool (*basicvector_search_function)(void *user_data, void *item);
 // Initialize basicvector
 int basicvector_init(struct basicvector_s **vector);
 
-void basicvector_push(struct basicvector_s *vector, void *item);
+int basicvector_push(struct basicvector_s *vector, void *item);
 
 void *basicvector_get(struct basicvector_s *vector, int index);
 
