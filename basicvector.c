@@ -83,3 +83,28 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     return 0;
 }
 
+int basicvector_find_index(
+    struct basicvector_s *vector, 
+    int *result,
+    basicvector_search_function search_function, 
+    void *user_data
+) {
+    if (vector->starting_entry == NULL) {
+        *result = -1;
+        return -1;
+    }
+
+    struct basicvector_entry_s *examined_entry = vector->starting_entry;
+
+    for (int i = 0;;i++) {
+        if (search_function(user_data, examined_entry->item)) {
+            *result = i;
+            return 0;
+        }
+
+        examined_entry = examined_entry->next_entry;
+    }
+
+    *result = -1;
+    return -1;
+}

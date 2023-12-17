@@ -14,7 +14,7 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
 int basicvector_find_index(
     struct basicvector_s *vector, 
-    void *searched_ptr, 
+    int *result,
     basicvector_search_function search_function, 
     void *user_data
 );
