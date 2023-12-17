@@ -112,3 +112,7 @@ int basicvector_find_index(
     *result = BASICVECTOR_ITEM_NOT_FOUND;
     return BASICVECTOR_ITEM_NOT_FOUND;
 }
+
+int basicvector_length(struct basicvector_s *vector) {
+    return vector->cached_length;
+}
