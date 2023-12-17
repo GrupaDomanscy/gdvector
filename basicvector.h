@@ -10,7 +10,7 @@ int basicvector_init(struct basicvector_s **vector);
 
 int basicvector_push(struct basicvector_s *vector, void *item);
 
-void *basicvector_get(struct basicvector_s *vector, int index);
+int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
 int basicvector_find_index(
     struct basicvector_s *vector, 

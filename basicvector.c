@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <strings.h>
 
 struct basicvector_s {
     void *starting_entry;
@@ -61,5 +62,21 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
         last_entry->next_entry = entry;
     }
 
+    return 0;
+}
+
+int basicvector_get(struct basicvector_s *vector, int index, void **result) {
+    if (index > vector->cached_length - 1) {
+        *result = NULL;
+        return -1;
+    }
+
+    struct basicvector_entry_s *entry = vector->starting_entry;
+
+    for (int i = 1; i < index; i++) {
+        entry = entry->next_entry;
+    }
+
+    *result = entry;
     return 0;
 }
