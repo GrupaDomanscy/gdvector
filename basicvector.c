@@ -11,6 +11,19 @@ struct basicvector_entry_s {
     void *next_entry;
 };
 
+struct basicvector_entry_s* basicvector_internal_new_entry(void *item) {
+    struct basicvector_entry_s* new_entry = malloc(sizeof(struct basicvector_entry_s));
+
+    if (new_entry == NULL) {
+        return NULL;
+    }
+
+    new_entry->item = item;
+    new_entry->next_entry = NULL;
+
+    return new_entry; 
+}
+
 int basicvector_init(struct basicvector_s **vector) {
     struct basicvector_s *new_vector = malloc(sizeof(struct basicvector_s));
 
@@ -111,4 +124,58 @@ int basicvector_find_index(
 
 int basicvector_length(struct basicvector_s *vector) {
     return vector->cached_length;
+}
+
+int basicvector_set(
+    struct basicvector_s *vector, 
+    int index,
+    void *item,
+    void (*deallocation_function)(void* item)
+) {
+    if (index < 0) {
+        return BASICVECTOR_INVALID_INDEX;
+    }
+
+    if (index == 0) {
+        struct basicvector_entry_s *entry_to_affect = vector->starting_entry;
+
+        if (entry_to_affect == NULL) {
+            vector->starting_entry = basicvector_internal_new_entry(item);
+
+            if (vector->starting_entry == NULL) {
+                return BASICVECTOR_MEMORY_ERROR;
+            }
+        } else {
+            deallocation_function(entry_to_affect->item);
+            entry_to_affect->item = item;
+        }
+
+        return BASICVECTOR_SUCCESS;
+    }
+
+    struct basicvector_entry_s *examined_entry = vector->starting_entry;
+
+    int i = 0;
+
+    while (i != index) {
+        i++;
+
+        if (examined_entry->next_entry == NULL) {
+            examined_entry->next_entry = basicvector_internal_new_entry(NULL);
+
+            if (examined_entry->next_entry == NULL) {
+                return BASICVECTOR_MEMORY_ERROR;
+            }
+        }
+
+        examined_entry = examined_entry->next_entry;
+    }
+
+    if (examined_entry->item != NULL) {
+        deallocation_function(examined_entry->item);
+    }
+
+    examined_entry->item = item;
+
+    return BASICVECTOR_SUCCESS;
 }

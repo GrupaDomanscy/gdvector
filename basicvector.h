@@ -4,6 +4,7 @@
 #define BASICVECTOR_SUCCESS 0
 #define BASICVECTOR_MEMORY_ERROR -1
 #define BASICVECTOR_ITEM_NOT_FOUND -2
+#define BASICVECTOR_INVALID_INDEX -3
 
 #include <stdbool.h>
 
@@ -26,7 +27,12 @@ int basicvector_find_index(
 
 int basicvector_length(struct basicvector_s *vector);
 
-int basicvector_set(struct basicvector_s *vector, int index, void *item);
+int basicvector_set(
+    struct basicvector_s *vector, 
+    int index,
+    void *item,
+    void (*deallocation_function)(void *item)
+);
 
 int basicvector_remove(struct basicvector_s *vector, int index);
 
