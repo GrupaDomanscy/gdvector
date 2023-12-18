@@ -5,11 +5,12 @@
 #define BASICVECTOR_MEMORY_ERROR -1
 #define BASICVECTOR_ITEM_NOT_FOUND -2
 
+#include <stdbool.h>
+
 struct basicvector_s;
 
-typedef bool (*basicvector_search_function)(void *user_data, void *item);
+typedef bool (*basicvector_search_function)(void*, void*);
 
-// Initialize basicvector
 int basicvector_init(struct basicvector_s **vector);
 
 int basicvector_push(struct basicvector_s *vector, void *item);

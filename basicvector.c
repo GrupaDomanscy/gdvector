@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <strings.h>
+#include "basicvector.h"
 
 struct basicvector_s {
     void *starting_entry;
@@ -10,10 +10,6 @@ struct basicvector_entry_s {
     void *item;
     void *next_entry;
 };
-
-extern int BASICVECTOR_SUCCESS;
-extern int BASICVECTOR_MEMORY_ERROR;
-extern int BASICVECTOR_ITEM_NOT_FOUND;
 
 int basicvector_init(struct basicvector_s **vector) {
     struct basicvector_s *new_vector = malloc(sizeof(struct basicvector_s));
@@ -87,10 +83,10 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     return BASICVECTOR_SUCCESS;
 }
 
-int basicvector_find_index(
+bool basicvector_find_index(
     struct basicvector_s *vector, 
     int *result,
-    basicvector_search_function search_function, 
+    basicvector_search_function **search_ptr,
     void *user_data
 ) {
     if (vector->starting_entry == NULL) {
