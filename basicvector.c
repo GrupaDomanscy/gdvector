@@ -179,3 +179,59 @@ int basicvector_set(
 
     return BASICVECTOR_SUCCESS;
 }
+
+int basicvector_remove(
+    struct basicvector_s *vector, 
+    int index, 
+    void (*deallocation_function)(void* item)
+) {
+    if (index < 0 || index + 1 > basicvector_length(vector)) {
+        return BASICVECTOR_INVALID_INDEX;
+    }
+
+    if (index == 0) {
+        struct basicvector_entry_s *entry_to_affect = vector->starting_entry;
+
+        if (entry_to_affect == NULL) {
+            return BASICVECTOR_INVALID_INDEX;
+        }
+
+        deallocation_function(entry_to_affect->item);
+
+        vector->starting_entry = entry_to_affect->next_entry;
+
+        free(entry_to_affect);
+
+        return BASICVECTOR_SUCCESS;
+    }
+
+    struct basicvector_entry_s *entry_before = vector->starting_entry;
+
+    int i = 0;
+
+    while (i < index - 1) {
+        i++;
+
+        if (entry_before->next_entry == NULL) {
+            return BASICVECTOR_INVALID_INDEX;
+        }
+
+        entry_before = entry_before->next_entry;
+    }
+
+    struct basicvector_entry_s *entry_to_remove = entry_before->next_entry;
+
+    if (entry_to_remove == NULL) {
+        return BASICVECTOR_INVALID_INDEX;
+    }
+
+    struct basicvector_entry_s *entry_after = entry_to_remove->next_entry;
+
+    entry_before->next_entry = entry_after;
+
+    deallocation_function(entry_to_remove->item);
+    
+    free(entry_to_remove);
+
+    return BASICVECTOR_SUCCESS;
+}
