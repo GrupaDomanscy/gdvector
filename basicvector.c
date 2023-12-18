@@ -83,10 +83,10 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     return BASICVECTOR_SUCCESS;
 }
 
-bool basicvector_find_index(
+int basicvector_find_index(
     struct basicvector_s *vector, 
     int *result,
-    basicvector_search_function **search_ptr,
+    basicvector_search_function search_function,
     void *user_data
 ) {
     if (vector->starting_entry == NULL) {
