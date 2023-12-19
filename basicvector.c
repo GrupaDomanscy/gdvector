@@ -235,3 +235,17 @@ int basicvector_remove(
 
     return BASICVECTOR_SUCCESS;
 }
+
+void basicvector_free(struct basicvector_s *vector) {
+    struct basicvector_entry_s* entry = vector->starting_entry;
+
+    while (entry != NULL) {
+        struct basicvector_entry_s *next_entry = entry->next_entry;
+
+        free(entry);
+
+        entry = next_entry;
+    }
+
+    free(vector);
+}
