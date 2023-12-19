@@ -40,6 +40,6 @@ int basicvector_remove(
     void (*deallocation_function)(void* item)
 );
 
-void basicvector_free(struct basicvector_s *vector);
+void basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item));
 
 #endif //BASICVECTOR_VECTOR_H_

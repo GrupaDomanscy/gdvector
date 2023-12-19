@@ -88,11 +88,11 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
 
     struct basicvector_entry_s *entry = vector->starting_entry;
 
-    for (int i = 1; i < index; i++) {
+    for (int i = 1; i <= index; i++) {
         entry = entry->next_entry;
     }
 
-    *result = entry;
+    *result = entry->item;
     return BASICVECTOR_SUCCESS;
 }
 
@@ -236,11 +236,13 @@ int basicvector_remove(
     return BASICVECTOR_SUCCESS;
 }
 
-void basicvector_free(struct basicvector_s *vector) {
+void basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item)) {
     struct basicvector_entry_s* entry = vector->starting_entry;
 
     while (entry != NULL) {
         struct basicvector_entry_s *next_entry = entry->next_entry;
+
+        deallocation_function(entry->item);
 
         free(entry);
 
