@@ -1,14 +1,23 @@
 #include <stdlib.h>
 #include "basicvector.h"
 
+#ifdef DEBUG
+    #include <stdio.h>
+    #define debug_print(fmt, ...) \
+                do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#else
+    #define debug_print(fmt, ...) \
+                do {} while(0);
+#endif
+
 struct basicvector_s {
-    void *starting_entry;
+    struct basicvector_entry_s *starting_entry;
     int cached_length;
 };
 
 struct basicvector_entry_s {
     void *item;
-    void *next_entry;
+    struct basicvector_entry_s *next_entry;
 };
 
 struct basicvector_entry_s* basicvector_internal_new_entry(void *item) {
@@ -64,7 +73,7 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
         return BASICVECTOR_MEMORY_ERROR;
     }
 
-    vector->cached_length += 1;
+    vector->cached_length++;
 
     entry->item = item;
     entry->next_entry = NULL;
@@ -81,17 +90,24 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
 }
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result) {
+    debug_print("[DEBUG] basicvector_get; vector: %p; index: %d\n", vector, index);
+    
     if (index > vector->cached_length - 1) {
+        debug_print("[DEBUG] basicvector_get; BASICVECTOR_ITEM_NOT_FOUND error; index: %d; vector->cached_length: %d\n", index, vector->cached_length);
         *result = NULL;
         return BASICVECTOR_ITEM_NOT_FOUND;
     }
 
     struct basicvector_entry_s *entry = vector->starting_entry;
 
+    debug_print("[DEBUG] basicvector_get; entry: %p; vector->starting_entry: %p\n", entry, vector->starting_entry);
+
     for (int i = 1; i <= index; i++) {
+        debug_print("[DEBUG] basicvector_get; i: %d; entry->next_entry: %p\n", i, entry->next_entry);
         entry = entry->next_entry;
     }
 
+    debug_print("[DEBUG] basicvector_get; entry->item: %p\n", entry->item);
     *result = entry->item;
     return BASICVECTOR_SUCCESS;
 }
@@ -145,12 +161,26 @@ int basicvector_set(
             if (vector->starting_entry == NULL) {
                 return BASICVECTOR_MEMORY_ERROR;
             }
+
+            vector->cached_length++;
         } else {
             deallocation_function(entry_to_affect->item);
             entry_to_affect->item = item;
         }
 
         return BASICVECTOR_SUCCESS;
+    }
+
+    if (vector->starting_entry == NULL) {
+        vector->starting_entry = basicvector_internal_new_entry(NULL);
+
+        if (vector->starting_entry == NULL) {
+            return BASICVECTOR_MEMORY_ERROR;
+        }
+
+        vector->cached_length++;
+
+        debug_print("[DEBUG] basicvector_set; creating new entry at index: %d; vector->starting_entry->item: %p; vector->starting_entry->next_entry: %p\n", 0, vector->starting_entry->item, vector->starting_entry->next_entry);
     }
 
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
@@ -166,6 +196,10 @@ int basicvector_set(
             if (examined_entry->next_entry == NULL) {
                 return BASICVECTOR_MEMORY_ERROR;
             }
+
+            vector->cached_length++;
+
+            debug_print("[DEBUG] basicvector_set; creating new entry at index: %d; examined_entry->next_entry->item: %p; examined_entry->next_entry->next_entry: %p\n", i, examined_entry->next_entry->item, examined_entry->next_entry->next_entry);
         }
 
         examined_entry = examined_entry->next_entry;
