@@ -13,27 +13,31 @@ void pass(char *message) {
     printf("[PASS] %s\n", message);
 }
 
-void expect_status_success(int status) {
-    char *returned_status;
-
+char *status_to_string(int status) {
     switch (status) {
         case 0:
-            returned_status = "BASICVECTOR_SUCCESS";
+            return "BASICVECTOR_SUCCESS";
         case -1:
-            returned_status = "BASICVECTOR_MEMORY_ERROR";
+            return "BASICVECTOR_MEMORY_ERROR";
         case -2:
-            returned_status = "BASICVECTOR_ITEM_NOT_FOUND";
+            return "BASICVECTOR_ITEM_NOT_FOUND";
         case -3:
-            returned_status = "BASICVECTOR_INVALID_INDEX";
+            return "BASICVECTOR_INVALID_INDEX";
         default:
-            returned_status = "Unknown status";
+            return "Unknown status";
     }
+}
+
+void expect_status_success(int status) {
+    char *returned_status = status_to_string(status);
 
     char *error_message = malloc(256);
 
     sprintf(error_message, "Expected status to be BASICVECTOR_SUCCESS, received %s", returned_status);
 
     assert(status == BASICVECTOR_SUCCESS, error_message);
+    
+    free(error_message);
 }
 
 void expect_item_to_be(struct basicvector_s *vector, int index, int *expected_value) {
@@ -208,6 +212,119 @@ void test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside
     pass("basicvector_set sets first item when there are more than one inside the vector");
 }
 
+void test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_inside() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int result;
+    int *result_ptr = &result;
+
+    int status = basicvector_get(vector, 0, (void **) &result_ptr);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status BASICVECTOR_INVALID_INDEX, received %s", status_to_string(status));
+    assert(status != BASICVECTOR_INVALID_INDEX, error_message);
+
+    free(error_message);
+
+    error_message = malloc(256);
+    sprintf(error_message, "Expected result_ptr to be NULL, received %p instead.", result_ptr);
+    assert(result_ptr == NULL, error_message);
+
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_get returns invalid index error when no items are inside");
+}
+
+void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item1 = 12783;
+    int item2 = 2401;
+
+    int *item1_reference = &item1;
+    int *item2_reference = &item2;
+
+    expect_status_success(basicvector_push(vector, item1_reference));
+    expect_status_success(basicvector_push(vector, item2_reference));
+
+    int result;
+    int *result_ptr;
+
+    int length = basicvector_length(vector);
+
+    int status = basicvector_get(vector, length, (void **) &result_ptr);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
+    assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
+
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+    
+    pass("basicvector_get returns invalid index error when provided index is equal to length");
+}
+
+void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item1 = 12783;
+
+    int *item1_reference = &item1;
+
+    expect_status_success(basicvector_push(vector, item1_reference));
+
+    int result;
+    int *result_ptr;
+
+    int length = basicvector_length(vector);
+
+    expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
+    assert(result_ptr == item1_reference, "Expected result_ptr to have the same value as item1_reference");
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_get returns proper value when provided last item index and there is only one item inside vector");
+}
+
+void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item1 = 12783;
+    int item2 = 2401;
+    int item3 = 21378;
+
+    int *item1_reference = &item1;
+    int *item2_reference = &item2;
+    int *item3_reference = &item3;
+
+    expect_status_success(basicvector_push(vector, item1_reference));
+    expect_status_success(basicvector_push(vector, item2_reference));
+    expect_status_success(basicvector_push(vector, item3_reference));
+
+    int result;
+    int *result_ptr;
+
+    int length = basicvector_length(vector);
+
+    expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
+    assert(result_ptr == item3_reference, "Expected result_ptr to have the same value as item3_reference");
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_get returns proper value when provided last item index");
+}
+
 int main() {
     test_if_basicvector_init_returns_valid_struct_pointer();
     test_if_basicvector_length_returns_valid_length();
@@ -216,8 +333,12 @@ int main() {
     test_if_basicvector_set_fills_non_existent_items_with_null_items();
     test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector();
     test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside_the_vector();
-    
+    test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_inside();
+    test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length();
+    test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
+    test_if_basicvector_get_returns_proper_value_when_provided_last_item_index();
+
     pass("All passed");
 
-    return 0;
+    return EXIT_SUCCESS;
 }
