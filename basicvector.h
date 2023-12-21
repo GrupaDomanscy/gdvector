@@ -10,8 +10,6 @@
 
 struct basicvector_s;
 
-typedef bool (*basicvector_search_function)(void*, void*);
-
 int basicvector_init(struct basicvector_s **vector);
 
 int basicvector_push(struct basicvector_s *vector, void *item);
@@ -20,8 +18,8 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
 int basicvector_find_index(
     struct basicvector_s *vector, 
-    int *result,
-    basicvector_search_function search_function, 
+    void **result,
+    bool (*search_function)(void *user_data, void *item), 
     void *user_data
 );
 

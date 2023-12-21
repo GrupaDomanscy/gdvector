@@ -28,6 +28,10 @@ char *status_to_string(int status) {
     }
 }
 
+char *bool_to_string(bool payload) {
+    return payload ? "true" : "false";
+}
+
 void expect_status_success(int status) {
     char *returned_status = status_to_string(status);
 
@@ -38,6 +42,12 @@ void expect_status_success(int status) {
     assert(status == BASICVECTOR_SUCCESS, error_message);
     
     free(error_message);
+}
+
+void expect_multiple_status_success(int status[], int length) {
+    for (int i = 0; i < length; i++) {
+        expect_status_success(status[i]);
+    }
 }
 
 void expect_item_to_be(struct basicvector_s *vector, int index, int *expected_value) {
@@ -325,6 +335,178 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
     pass("basicvector_get returns proper value when provided last item index");
 }
 
+bool search_function__passes_valid_user_data_pointer(void *user_data, void *item) {
+    bool *user_data_casted = (bool *) user_data;
+    *user_data_casted = true;
+
+    return false;
+}
+
+void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(
+        basicvector_push(vector, NULL)
+    );
+
+    void *result = malloc(1);
+    bool user_data = false;
+
+    basicvector_find_index(
+        vector, &result,
+        search_function__passes_valid_user_data_pointer, 
+        &user_data
+    );
+
+    free(result);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected user_data to be true, received %s", bool_to_string(user_data));
+    assert(user_data == true, error_message);
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_find_index passes valid user data pointer to search function");
+}
+
+bool only_true_search_function(void *user_data, void *item) {
+    return true;
+}
+
+void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    void *result;
+    bool user_data = false;
+
+    int status = basicvector_find_index(vector, &result, search_function__passes_valid_user_data_pointer, &user_data);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
+    assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
+    free(error_message);
+
+    error_message = malloc(256);
+    sprintf(error_message, "Expected result to be null, received %p", result);
+    assert(result == NULL, error_message);
+    free(error_message);
+
+    error_message = malloc(512);
+    sprintf(error_message, "Expected user_data to be false, received %s instead. If this check fails, it indicates that search function has been run, but it shouldn't be!", bool_to_string(user_data));
+    assert(user_data == false, error_message);
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_find_index returns item not found and assigns null to result when vector is empty");
+}
+
+bool only_false_search_function(void *user_data, void *item) {
+    return false;
+}
+
+void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int temp = 1;
+    int *result = &temp;
+
+    int status = basicvector_find_index(vector, (void **) &result, only_false_search_function, NULL);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
+    assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
+    free(error_message);
+
+    error_message = malloc(256);
+    sprintf(error_message, "Expected result to be null, received %p", result);
+    assert(result == NULL, error_message);
+    free(error_message);
+
+    free(result);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_find index returns item not found and assigns null to result when vector has items and search_function does not match any items");
+}
+
+bool return_true_on_equal_with_user_data_search_function(void *user_data, void *item) {
+    return user_data == item;
+}
+
+void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int val1 = 123;
+
+    int *val1_reference = &val1;
+    int *val2_reference = &val1;
+    int *val3_reference = &val1;
+    int *val4_reference = &val1;
+
+    expect_status_success(basicvector_push(vector, val1_reference));
+    expect_status_success(basicvector_push(vector, val2_reference));
+    expect_status_success(basicvector_push(vector, val3_reference));
+    expect_status_success(basicvector_push(vector, val4_reference));
+
+    int length = basicvector_length(vector);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected length to be 4, received %d", length);
+    assert(length == 4, error_message);
+    free(error_message);
+
+    int temp1 = 1;
+    int *result = &temp1;
+
+    expect_status_success(
+        basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val3_reference)
+    );
+
+    error_message = malloc(256);
+    sprintf(error_message, "Expected result to be equal to val3_reference (%p), received %p", val3_reference, result);
+    assert(result == val3_reference, error_message);
+    free(error_message);
+
+    free(vector);
+
+    pass("basicvector_find_index returns success and assigns item to result when vector has at least two items and search function matches item");
+}
+
+void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int val1 = 98;
+
+    int *val1_reference = &val1;
+
+    expect_status_success(basicvector_push(vector, val1_reference));
+
+    int *result = NULL;
+
+    expect_status_success(basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val1_reference));
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected result to be equal to val1_reference (%p), received %p", val1_reference, result);
+    assert(result == val1_reference, error_message);
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_find_index returns success and assigns item to result when vector has one item and search function matches item");
+}
+
 int main() {
     test_if_basicvector_init_returns_valid_struct_pointer();
     test_if_basicvector_length_returns_valid_length();
@@ -337,6 +519,13 @@ int main() {
     test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index();
+    
+    // find index
+    test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function();
+    test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty();
+    test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();
+    test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item();
+    test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item();
 
     pass("All passed");
 

@@ -114,27 +114,44 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
 
 int basicvector_find_index(
     struct basicvector_s *vector, 
-    int *result,
-    basicvector_search_function search_function,
+    void **result,
+    bool (*search_function)(void *user_data, void *item),
     void *user_data
 ) {
+    debug_print("[DEBUG] basicvector_find_index; \n\tvector: %p; \n\tresult %p; \n\t*result: %p; \n\tsearch_function: %p; \n\tuser_data: %p; \n\tvector->starting_entry: %p;\n",
+        vector, result, *result, search_function, user_data, vector->starting_entry);
+    
     if (vector->starting_entry == NULL) {
-        *result = BASICVECTOR_ITEM_NOT_FOUND;
-        return BASICVECTOR_ITEM_NOT_FOUND;;
+        *result = NULL;
+        return BASICVECTOR_ITEM_NOT_FOUND;
     }
 
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
 
-    for (int i = 0;;i++) {
+    while (examined_entry != NULL) {
+        #ifdef DEBUG
+        printf("[DEBUG] basicvector_find_index; in loop", NULL);
+        #endif
+
         if (search_function(user_data, examined_entry->item)) {
-            *result = BASICVECTOR_SUCCESS;
+            #ifdef DEBUG
+            printf("[DEBUG] basicvector_find_index; in loop, after search function returned true \n");
+            #endif
+
+            *result = examined_entry->item;
             return BASICVECTOR_SUCCESS;
         }
+
+        #ifdef DEBUG
+        printf("[DEBUG] basicvector_find_index; in loop, after search function returned false;\n");
+        #endif
 
         examined_entry = examined_entry->next_entry;
     }
 
-    *result = BASICVECTOR_ITEM_NOT_FOUND;
+    debug_print("[DEBUG] basicvector_find_index; after for loop, returning BASICVECTOR_ITEM NOT FOUND\n", NULL);
+
+    *result = NULL;
     return BASICVECTOR_ITEM_NOT_FOUND;
 }
 
