@@ -377,11 +377,33 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
     pass("basicvector_get returns proper value when provided last item index");
 }
 
+void test_if_basicvector_get_returns_memory_error_when_vector_is_null() {
+    int status = basicvector_get(NULL, 0, NULL);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
+    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
+    free(error_message);
+
+    pass("basicvector_get returns memory error when vector is null");
+}
+
 bool search_function__passes_valid_user_data_pointer(void *user_data, void *item) {
     bool *user_data_casted = (bool *) user_data;
     *user_data_casted = true;
 
     return false;
+}
+
+void test_if_basicvector_find_index_returns_memory_error_when_vector_is_null() {
+    int status = basicvector_find_index(NULL, NULL, NULL, NULL);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
+    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
+    free(error_message);
+
+    pass("basicvector_find_index returns memory error when vector is null");
 }
 
 void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function() {
@@ -569,12 +591,14 @@ int main() {
     test_if_basicvector_set_returns_memory_error_when_vector_is_null();
 
     // basicvector_set
+    test_if_basicvector_get_returns_memory_error_when_vector_is_null();
     test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_inside();
     test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index();
     
     // find index
+    test_if_basicvector_find_index_returns_memory_error_when_vector_is_null();
     test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function();
     test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty();
     test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();

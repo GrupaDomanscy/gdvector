@@ -93,6 +93,8 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     debug_print("[DEBUG] basicvector_get; vector: %p; index: %d\n", vector, index);
+
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
     
     if (index > vector->cached_length - 1) {
         debug_print("[DEBUG] basicvector_get; BASICVECTOR_ITEM_NOT_FOUND error; index: %d; vector->cached_length: %d\n", index, vector->cached_length);
@@ -120,6 +122,8 @@ int basicvector_find_index(
     bool (*search_function)(void *user_data, void *item),
     void *user_data
 ) {
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
+
     debug_print("[DEBUG] basicvector_find_index; \n\tvector: %p; \n\tresult %p; \n\t*result: %p; \n\tsearch_function: %p; \n\tuser_data: %p; \n\tvector->starting_entry: %p;\n",
         vector, result, *result, search_function, user_data, vector->starting_entry);
     
