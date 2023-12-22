@@ -67,6 +67,8 @@ struct basicvector_entry_s *basicvector_internal_find_last_item(struct basicvect
 }
 
 int basicvector_push(struct basicvector_s *vector, void *item) {
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
+
     struct basicvector_entry_s *entry = malloc(sizeof(struct basicvector_entry_s));
 
     if (entry == NULL) {
@@ -155,6 +157,7 @@ int basicvector_find_index(
     return BASICVECTOR_ITEM_NOT_FOUND;
 }
 
+// TOOD: This function has to be redesigned, vector MUST be checked if it is NULL
 int basicvector_length(struct basicvector_s *vector) {
     return vector->cached_length;
 }
@@ -165,6 +168,8 @@ int basicvector_set(
     void *item,
     void (*deallocation_function)(void* item)
 ) {
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
+
     if (index < 0) {
         return BASICVECTOR_INVALID_INDEX;
     }

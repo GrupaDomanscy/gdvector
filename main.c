@@ -93,6 +93,10 @@ void test_if_basicvector_length_returns_valid_length() {
     pass("basicvector_length returns valid length");
 }
 
+// TODO: After basicvector_length function redesign, finish this test case
+//void test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector() {
+//}
+
 void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     struct basicvector_s *vector;
 
@@ -119,6 +123,17 @@ void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     basicvector_free(vector, deallocation_function);
 
     pass("basicvector_push pushes item at the end of the vector");
+}
+
+void test_if_basicvector_push_returns_memory_error_when_passed_null_as_a_vector() {
+    int status = basicvector_push(NULL, NULL);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
+    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
+    free(error_message);
+
+    pass("basicvector_push returns memory error when passed null as a vector");
 }
 
 void test_if_basicvector_set_sets_item_in_the_middle_of_the_vector() {
@@ -220,6 +235,33 @@ void test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside
     basicvector_free(vector, deallocation_function);
 
     pass("basicvector_set sets first item when there are more than one inside the vector");
+}
+
+void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than_zero() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int status = basicvector_set(vector, -1, NULL, deallocation_function);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_INVALID_INDEX, received %s instead", status_to_string(status));
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_set returns invalid index error when index is less than zero");
+}
+
+void test_if_basicvector_set_returns_memory_error_when_vector_is_null() {
+    int status = basicvector_set(NULL, 0, NULL, deallocation_function);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
+    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
+    free(error_message);
+
+    pass("basicvector_set returns memory error when vector is null");
 }
 
 void test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_inside() {
@@ -509,12 +551,24 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 
 int main() {
     test_if_basicvector_init_returns_valid_struct_pointer();
+
+    // basicvector length
     test_if_basicvector_length_returns_valid_length();
+    // test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector();
+
+    // basicvector_push
     test_if_basicvector_push_pushes_item_at_the_end_of_the_vector();
+    test_if_basicvector_push_returns_memory_error_when_passed_null_as_a_vector();
+
+    // basicvector_set
     test_if_basicvector_set_sets_item_in_the_middle_of_the_vector();
     test_if_basicvector_set_fills_non_existent_items_with_null_items();
     test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector();
     test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside_the_vector();
+    test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than_zero();
+    test_if_basicvector_set_returns_memory_error_when_vector_is_null();
+
+    // basicvector_set
     test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_inside();
     test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
