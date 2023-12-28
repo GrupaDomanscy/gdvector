@@ -1,15 +1,6 @@
 #include <stdlib.h>
 #include "basicvector.h"
 
-#ifdef DEBUG
-    #include <stdio.h>
-    #define debug_print(fmt, ...) \
-                do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-#else
-    #define debug_print(fmt, ...) \
-                do {} while(0);
-#endif
-
 struct basicvector_s {
     struct basicvector_entry_s *starting_entry;
     int cached_length;
@@ -92,26 +83,19 @@ int basicvector_push(struct basicvector_s *vector, void *item) {
 }
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result) {
-    debug_print("[DEBUG] basicvector_get; vector: %p; index: %d\n", vector, index);
-
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
     
     if (index > vector->cached_length - 1) {
-        debug_print("[DEBUG] basicvector_get; BASICVECTOR_ITEM_NOT_FOUND error; index: %d; vector->cached_length: %d\n", index, vector->cached_length);
         *result = NULL;
         return BASICVECTOR_ITEM_NOT_FOUND;
     }
 
     struct basicvector_entry_s *entry = vector->starting_entry;
 
-    debug_print("[DEBUG] basicvector_get; entry: %p; vector->starting_entry: %p\n", entry, vector->starting_entry);
-
     for (int i = 1; i <= index; i++) {
-        debug_print("[DEBUG] basicvector_get; i: %d; entry->next_entry: %p\n", i, entry->next_entry);
         entry = entry->next_entry;
     }
 
-    debug_print("[DEBUG] basicvector_get; entry->item: %p\n", entry->item);
     *result = entry->item;
     return BASICVECTOR_SUCCESS;
 }
@@ -124,9 +108,6 @@ int basicvector_find_index(
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
 
-    debug_print("[DEBUG] basicvector_find_index; \n\tvector: %p; \n\tresult %p; \n\t*result: %p; \n\tsearch_function: %p; \n\tuser_data: %p; \n\tvector->starting_entry: %p;\n",
-        vector, result, *result, search_function, user_data, vector->starting_entry);
-    
     if (vector->starting_entry == NULL) {
         *result = NULL;
         return BASICVECTOR_ITEM_NOT_FOUND;
@@ -135,27 +116,13 @@ int basicvector_find_index(
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
 
     while (examined_entry != NULL) {
-        #ifdef DEBUG
-        printf("[DEBUG] basicvector_find_index; in loop", NULL);
-        #endif
-
         if (search_function(user_data, examined_entry->item)) {
-            #ifdef DEBUG
-            printf("[DEBUG] basicvector_find_index; in loop, after search function returned true \n");
-            #endif
-
             *result = examined_entry->item;
             return BASICVECTOR_SUCCESS;
         }
 
-        #ifdef DEBUG
-        printf("[DEBUG] basicvector_find_index; in loop, after search function returned false;\n");
-        #endif
-
         examined_entry = examined_entry->next_entry;
     }
-
-    debug_print("[DEBUG] basicvector_find_index; after for loop, returning BASICVECTOR_ITEM NOT FOUND\n", NULL);
 
     *result = NULL;
     return BASICVECTOR_ITEM_NOT_FOUND;
@@ -206,7 +173,6 @@ int basicvector_set(
 
         vector->cached_length++;
 
-        debug_print("[DEBUG] basicvector_set; creating new entry at index: %d; vector->starting_entry->item: %p; vector->starting_entry->next_entry: %p\n", 0, vector->starting_entry->item, vector->starting_entry->next_entry);
     }
 
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
@@ -224,8 +190,6 @@ int basicvector_set(
             }
 
             vector->cached_length++;
-
-            debug_print("[DEBUG] basicvector_set; creating new entry at index: %d; examined_entry->next_entry->item: %p; examined_entry->next_entry->next_entry: %p\n", i, examined_entry->next_entry->item, examined_entry->next_entry->next_entry);
         }
 
         examined_entry = examined_entry->next_entry;
