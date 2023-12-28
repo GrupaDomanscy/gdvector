@@ -128,9 +128,14 @@ int basicvector_find_index(
     return BASICVECTOR_ITEM_NOT_FOUND;
 }
 
-// TOOD: This function has to be redesigned, vector MUST be checked if it is NULL
-int basicvector_length(struct basicvector_s *vector) {
-    return vector->cached_length;
+int basicvector_length(struct basicvector_s *vector, int *result) {
+    if (vector == NULL) {
+        return BASICVECTOR_MEMORY_ERROR;
+    }
+
+    *result = vector->cached_length;
+
+    return BASICVECTOR_SUCCESS;
 }
 
 int basicvector_set(
@@ -213,7 +218,14 @@ int basicvector_remove(
 
     if (deallocation_function == NULL) return BASICVECTOR_MEMORY_ERROR;
 
-    if (index < 0 || index + 1 > basicvector_length(vector)) {
+    int length;
+    
+    int status = basicvector_length(vector, &length);
+    if (status != BASICVECTOR_SUCCESS) {
+        return status;
+    }
+
+    if (index < 0 || index + 1 > length) {
         return BASICVECTOR_INVALID_INDEX;
     }
 

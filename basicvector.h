@@ -23,7 +23,7 @@ int basicvector_find_index(
     void *user_data
 );
 
-int basicvector_length(struct basicvector_s *vector);
+int basicvector_length(struct basicvector_s *vector, int *result);
 
 int basicvector_set(
     struct basicvector_s *vector, 

@@ -9,15 +9,6 @@ void assert(bool result, char *message) {
     }
 }
 
-void expect_length_to_be(struct basicvector_s *vector, int expected_length) {
-    int length = basicvector_length(vector);
-
-    char *error_message = malloc(256);
-    sprintf(error_message, "Expected length to be %d, received %d", expected_length, length);
-    assert(length == expected_length, error_message);
-    free(error_message);
-}
-
 void pass(char *message) {
     printf("[PASS] %s\n", message);
 }
@@ -36,7 +27,6 @@ char *status_to_string(int status) {
             return "Unknown status";
     }
 }
-
 
 char *bool_to_string(bool payload) {
     return payload ? "true" : "false";
@@ -61,6 +51,17 @@ void expect_status_success(int status) {
     free(error_message);
 }
 
+void expect_length_to_be(struct basicvector_s *vector, int expected_length) {
+    int length;
+    expect_status_success(basicvector_length(vector, &length));
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected length to be %d, received %d", expected_length, length);
+    assert(length == expected_length, error_message);
+    free(error_message);
+}
+
+// TODO: Unused, remove in the future
 void expect_multiple_status_success(int status[], int length) {
     for (int i = 0; i < length; i++) {
         expect_status_success(status[i]);
@@ -98,21 +99,25 @@ void test_if_basicvector_length_returns_valid_length() {
 
     expect_status_success(basicvector_init(&vector));
 
-    assert(0 == basicvector_length(vector), "Expected length to be 0.");
+    expect_length_to_be(vector, 0);
 
     expect_status_success(basicvector_push(vector, NULL));
     expect_status_success(basicvector_push(vector, NULL));
 
-    assert(2 == basicvector_length(vector), "Expected length to be 2.");
+    expect_length_to_be(vector, 2);
 
     basicvector_free(vector, deallocation_function);
 
     pass("basicvector_length returns valid length");
 }
 
-// TODO: After basicvector_length function redesign, finish this test case
-//void test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector() {
-//}
+void test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector() {
+    int val;
+
+    expect_status(basicvector_length(NULL, &val), BASICVECTOR_MEMORY_ERROR);
+
+    pass("basicvector_length returns memory error when passed null as vector");
+}
 
 void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     struct basicvector_s *vector;
@@ -125,13 +130,13 @@ void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
 
     expect_status_success(basicvector_init(&vector));
 
-    assert(0 == basicvector_length(vector), "Expected length to be 0.");
+    expect_length_to_be(vector, 0);
 
     expect_status_success(basicvector_push(vector, item1expected));
     expect_status_success(basicvector_push(vector, item2expected));
     expect_status_success(basicvector_push(vector, item1expected));
 
-    assert(3 == basicvector_length(vector), "Expected length to be 3.");
+    expect_length_to_be(vector, 3);
 
     expect_item_to_be(vector, 0, item1expected);
     expect_item_to_be(vector, 1, item2expected);
@@ -200,7 +205,7 @@ void test_if_basicvector_set_fills_non_existent_items_with_null_items() {
     expect_item_to_be(vector, 4, NULL);
     expect_item_to_be(vector, 5, item_references[3]);
 
-    assert(basicvector_length(vector) == 6, "Length should be 6");
+    expect_length_to_be(vector, 6);
 
     basicvector_free(vector, deallocation_function);
 
@@ -212,7 +217,7 @@ void test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector
 
     basicvector_init(&vector);
 
-    assert(basicvector_length(vector) == 0, "Length should be 0");
+    expect_length_to_be(vector, 0);
 
     int item = 99;
     int *item_reference = &item;
@@ -221,7 +226,7 @@ void test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector
 
     expect_item_to_be(vector, 0, item_reference);
 
-    assert(basicvector_length(vector) == 1, "Length should be 1");
+    expect_length_to_be(vector, 1);
 
     basicvector_free(vector, deallocation_function);
 
@@ -240,14 +245,14 @@ void test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside
     expect_status_success(basicvector_push(vector, second_item_reference));
     expect_status_success(basicvector_push(vector, second_item_reference));
 
-    assert(basicvector_length(vector) == 2, "Length should be 2");
+    expect_length_to_be(vector, 2);
 
     expect_status_success(basicvector_set(vector, 0, item_reference, deallocation_function));
 
     expect_item_to_be(vector, 0, item_reference);
     expect_item_to_be(vector, 1, second_item_reference);
 
-    assert(basicvector_length(vector) == 2, "Length should be 2");
+    expect_length_to_be(vector, 2);
 
     basicvector_free(vector, deallocation_function);
 
@@ -325,7 +330,8 @@ void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_eq
     int result;
     int *result_ptr;
 
-    int length = basicvector_length(vector);
+    int length;
+    expect_status_success(basicvector_length(vector, &length));
 
     int status = basicvector_get(vector, length, (void **) &result_ptr);
 
@@ -354,7 +360,8 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_
     int result;
     int *result_ptr;
 
-    int length = basicvector_length(vector);
+    int length;
+    expect_status_success(basicvector_length(vector, &length));
 
     expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
     assert(result_ptr == item1_reference, "Expected result_ptr to have the same value as item1_reference");
@@ -384,7 +391,8 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
     int result;
     int *result_ptr;
 
-    int length = basicvector_length(vector);
+    int length;
+    expect_status_success(basicvector_length(vector, &length));
 
     expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
     assert(result_ptr == item3_reference, "Expected result_ptr to have the same value as item3_reference");
@@ -539,12 +547,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
     expect_status_success(basicvector_push(vector, val3_reference));
     expect_status_success(basicvector_push(vector, val4_reference));
 
-    int length = basicvector_length(vector);
-
-    char *error_message = malloc(256);
-    sprintf(error_message, "Expected length to be 4, received %d", length);
-    assert(length == 4, error_message);
-    free(error_message);
+    expect_length_to_be(vector, 4);
 
     int temp1 = 1;
     int *result = &temp1;
@@ -553,7 +556,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
         basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val3_reference)
     );
 
-    error_message = malloc(256);
+    char *error_message = malloc(256);
     sprintf(error_message, "Expected result to be equal to val3_reference (%p), received %p", val3_reference, result);
     assert(result == val3_reference, error_message);
     free(error_message);
@@ -647,12 +650,7 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_
 
     expect_status(basicvector_remove(vector, 1, deallocation_function), BASICVECTOR_INVALID_INDEX);
 
-    int length = basicvector_length(vector);
-
-    char *error_message = malloc(256);
-    sprintf(error_message, "Expected length to be 1, received %d", length);
-    assert(length == 1, error_message);
-    free(error_message);
+    expect_length_to_be(vector, 1);
 
     basicvector_free(vector, deallocation_function);
 
@@ -753,7 +751,7 @@ int main() {
 
     // basicvector length
     test_if_basicvector_length_returns_valid_length();
-    // test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector();
+    test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector();
 
     // basicvector_push
     test_if_basicvector_push_pushes_item_at_the_end_of_the_vector();
