@@ -245,6 +245,10 @@ int basicvector_remove(
     int index, 
     void (*deallocation_function)(void* item)
 ) {
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
+
+    if (deallocation_function == NULL) return BASICVECTOR_MEMORY_ERROR;
+
     if (index < 0 || index + 1 > basicvector_length(vector)) {
         return BASICVECTOR_INVALID_INDEX;
     }
@@ -261,6 +265,8 @@ int basicvector_remove(
         vector->starting_entry = entry_to_affect->next_entry;
 
         free(entry_to_affect);
+
+        vector->cached_length--;
 
         return BASICVECTOR_SUCCESS;
     }
@@ -292,6 +298,8 @@ int basicvector_remove(
     deallocation_function(entry_to_remove->item);
     
     free(entry_to_remove);
+
+    vector->cached_length--;
 
     return BASICVECTOR_SUCCESS;
 }

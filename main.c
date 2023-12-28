@@ -9,6 +9,15 @@ void assert(bool result, char *message) {
     }
 }
 
+void expect_length_to_be(struct basicvector_s *vector, int expected_length) {
+    int length = basicvector_length(vector);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected length to be %d, received %d", expected_length, length);
+    assert(length == expected_length, error_message);
+    free(error_message);
+}
+
 void pass(char *message) {
     printf("[PASS] %s\n", message);
 }
@@ -28,8 +37,16 @@ char *status_to_string(int status) {
     }
 }
 
+
 char *bool_to_string(bool payload) {
     return payload ? "true" : "false";
+}
+
+void expect_status(int received, int expected) {
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected status to be %s, received %s instead", status_to_string(expected), status_to_string(received));
+    assert(received == expected, error_message);
+    free(error_message);
 }
 
 void expect_status_success(int status) {
@@ -40,7 +57,7 @@ void expect_status_success(int status) {
     sprintf(error_message, "Expected status to be BASICVECTOR_SUCCESS, received %s", returned_status);
 
     assert(status == BASICVECTOR_SUCCESS, error_message);
-    
+
     free(error_message);
 }
 
@@ -87,7 +104,7 @@ void test_if_basicvector_length_returns_valid_length() {
     expect_status_success(basicvector_push(vector, NULL));
 
     assert(2 == basicvector_length(vector), "Expected length to be 2.");
-    
+
     basicvector_free(vector, deallocation_function);
 
     pass("basicvector_length returns valid length");
@@ -119,7 +136,7 @@ void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     expect_item_to_be(vector, 0, item1expected);
     expect_item_to_be(vector, 1, item2expected);
     expect_item_to_be(vector, 2, item1expected);
-    
+
     basicvector_free(vector, deallocation_function);
 
     pass("basicvector_push pushes item at the end of the vector");
@@ -319,7 +336,7 @@ void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_eq
     free(error_message);
 
     basicvector_free(vector, deallocation_function);
-    
+
     pass("basicvector_get returns invalid index error when provided index is equal to length");
 }
 
@@ -571,6 +588,166 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
     pass("basicvector_find_index returns success and assigns item to result when vector has one item and search function matches item");
 }
 
+void test_if_basicvector_remove_returns_memory_error_when_vector_is_null() {
+    int status = basicvector_remove(NULL, 0, deallocation_function);
+
+    expect_status(status, BASICVECTOR_MEMORY_ERROR);
+
+    pass("basicvector_remove returns memory error when vector is null");
+}
+
+void test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_is_below_zero() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int status = basicvector_remove(vector, -1, deallocation_function);
+
+    expect_status(status, BASICVECTOR_INVALID_INDEX);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove returns invalid index error when provided index is below zero");
+}
+
+void test_if_basicvector_remove_returns_memory_error_when_provided_deallocation_function_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+
+    int status = basicvector_remove(vector, 0, NULL);
+
+    expect_status(status, BASICVECTOR_MEMORY_ERROR);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove returns memory error when provided deallocation function is null");
+}
+
+void test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not_have_any_items() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status(basicvector_remove(vector, 0, deallocation_function), BASICVECTOR_INVALID_INDEX);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove returns invalid index error when vector does not have any items");
+}
+
+void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_item_and_provided_index_is_1() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+
+    expect_status(basicvector_remove(vector, 1, deallocation_function), BASICVECTOR_INVALID_INDEX);
+
+    int length = basicvector_length(vector);
+
+    char *error_message = malloc(256);
+    sprintf(error_message, "Expected length to be 1, received %d", length);
+    assert(length == 1, error_message);
+    free(error_message);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove returns invalid index error when vector has one item and provided index is 1");
+}
+
+void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_two_items_and_provided_index_is_2() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+
+    expect_status(basicvector_remove(vector, 2, deallocation_function), BASICVECTOR_INVALID_INDEX);
+
+    expect_length_to_be(vector, 2);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove returns invalid index error when vector has two items and provided index is 2");
+}
+
+void test_if_basicvector_remove_removes_first_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int random_item = 1;
+
+    int *random_item_first_ref = &random_item;
+    int *random_item_second_ref = &random_item;
+
+    expect_status_success(basicvector_push(vector, random_item_first_ref));
+
+    expect_length_to_be(vector, 1);
+
+    expect_status_success(basicvector_remove(vector, 0, deallocation_function));
+
+    expect_length_to_be(vector, 0);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove removes first item");
+}
+
+void test_if_basicvector_remove_removes_second_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int random_item = 1;
+
+    int *random_item_first_ref = &random_item;
+    int *random_item_second_ref = &random_item;
+
+    expect_status_success(basicvector_push(vector, random_item_first_ref));
+    expect_status_success(basicvector_push(vector, random_item_second_ref));
+
+    expect_length_to_be(vector, 2);
+
+    expect_status_success(basicvector_remove(vector, 1, deallocation_function));
+
+    expect_length_to_be(vector, 1);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove removes second item");
+}
+
+void test_if_basicvector_remove_removes_third_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int random_item = 1;
+
+    int *random_item_first_ref = &random_item;
+    int *random_item_second_ref = &random_item;
+
+    expect_status_success(basicvector_push(vector, random_item_first_ref));
+    expect_status_success(basicvector_push(vector, random_item_second_ref));
+    expect_status_success(basicvector_push(vector, random_item_second_ref));
+
+    expect_length_to_be(vector, 3);
+
+    expect_status_success(basicvector_remove(vector, 2, deallocation_function));
+
+    expect_length_to_be(vector, 2);
+
+    basicvector_free(vector, deallocation_function);
+
+    pass("basicvector_remove removes third item");
+}
+
 int main() {
     test_if_basicvector_init_returns_valid_struct_pointer();
 
@@ -596,7 +773,7 @@ int main() {
     test_if_basicvector_get_returns_item_not_found_error_when_provided_index_equal_to_length();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index();
-    
+
     // find index
     test_if_basicvector_find_index_returns_memory_error_when_vector_is_null();
     test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function();
@@ -604,6 +781,17 @@ int main() {
     test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();
     test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item();
     test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item();
+
+    test_if_basicvector_remove_returns_memory_error_when_vector_is_null();
+    test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_is_below_zero();
+    test_if_basicvector_remove_returns_memory_error_when_provided_deallocation_function_is_null();
+    test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not_have_any_items();
+    test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_item_and_provided_index_is_1();
+    test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_two_items_and_provided_index_is_2();
+
+    test_if_basicvector_remove_removes_first_item();
+    test_if_basicvector_remove_removes_second_item();
+    test_if_basicvector_remove_removes_third_item();
 
     pass("All passed");
 
