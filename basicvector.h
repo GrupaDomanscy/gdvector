@@ -38,6 +38,6 @@ int basicvector_remove(
     void (*deallocation_function)(void* item)
 );
 
-void basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item));
+int basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item, void *user_data), void *user_data);
 
 #endif //BASICVECTOR_VECTOR_H_

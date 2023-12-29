@@ -280,13 +280,17 @@ int basicvector_remove(
     return BASICVECTOR_SUCCESS;
 }
 
-void basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item)) {
+int basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item, void *user_data), void *user_data) {
+    if (vector == NULL) {
+        return BASICVECTOR_MEMORY_ERROR;
+    }
+
     struct basicvector_entry_s* entry = vector->starting_entry;
 
     while (entry != NULL) {
         struct basicvector_entry_s *next_entry = entry->next_entry;
 
-        deallocation_function(entry->item);
+        deallocation_function(entry->item, user_data);
 
         free(entry);
 
@@ -294,4 +298,6 @@ void basicvector_free(struct basicvector_s *vector, void (*deallocation_function
     }
 
     free(vector);
+
+    return BASICVECTOR_SUCCESS;
 }

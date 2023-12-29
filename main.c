@@ -78,8 +78,16 @@ void expect_item_to_be(struct basicvector_s *vector, int index, int *expected_va
     assert(received == expected_value, error_message);
 }
 
-void deallocation_function(void *item) {
-    // ...
+void old_deallocation_function(void *item) {
+    // only for silencing compiler warnings
+    item = item;
+}
+
+void deallocation_function(void *item, void *user_data) {
+    // only for silencing compiler warnings
+    item = item;
+    user_data = user_data;
+
 }
 
 void test_if_basicvector_init_returns_valid_struct_pointer() {
@@ -89,7 +97,7 @@ void test_if_basicvector_init_returns_valid_struct_pointer() {
 
     assert(vector != NULL, "Vector should not be null.");
 
-    basicvector_free(vector, NULL);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_init returns valid struct pointer");
 }
@@ -106,7 +114,7 @@ void test_if_basicvector_length_returns_valid_length() {
 
     expect_length_to_be(vector, 2);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_length returns valid length");
 }
@@ -142,7 +150,7 @@ void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     expect_item_to_be(vector, 1, item2expected);
     expect_item_to_be(vector, 2, item1expected);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_push pushes item at the end of the vector");
 }
@@ -171,13 +179,13 @@ void test_if_basicvector_set_sets_item_in_the_middle_of_the_vector() {
         expect_status_success(basicvector_push(vector, item_references[i]));
     }
 
-    expect_status_success(basicvector_set(vector, 1, item_references[3], deallocation_function));
+    expect_status_success(basicvector_set(vector, 1, item_references[3], old_deallocation_function));
 
     expect_item_to_be(vector, 0, item_references[0]);
     expect_item_to_be(vector, 1, item_references[3]);
     expect_item_to_be(vector, 2, item_references[2]);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_set sets item in the middle of the vector");
 }
@@ -196,7 +204,7 @@ void test_if_basicvector_set_fills_non_existent_items_with_null_items() {
 
     expect_status_success(basicvector_init(&vector));
 
-    expect_status_success(basicvector_set(vector, 5, item_references[3], deallocation_function));
+    expect_status_success(basicvector_set(vector, 5, item_references[3], old_deallocation_function));
 
     expect_item_to_be(vector, 0, NULL);
     expect_item_to_be(vector, 1, NULL);
@@ -207,7 +215,7 @@ void test_if_basicvector_set_fills_non_existent_items_with_null_items() {
 
     expect_length_to_be(vector, 6);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_set fills non existent items with null items");
 }
@@ -228,7 +236,7 @@ void test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector
 
     expect_length_to_be(vector, 1);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_set sets first item when no items are inside the vector");
 }
@@ -247,14 +255,14 @@ void test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside
 
     expect_length_to_be(vector, 2);
 
-    expect_status_success(basicvector_set(vector, 0, item_reference, deallocation_function));
+    expect_status_success(basicvector_set(vector, 0, item_reference, old_deallocation_function));
 
     expect_item_to_be(vector, 0, item_reference);
     expect_item_to_be(vector, 1, second_item_reference);
 
     expect_length_to_be(vector, 2);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_set sets first item when there are more than one inside the vector");
 }
@@ -264,19 +272,19 @@ void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than
 
     expect_status_success(basicvector_init(&vector));
 
-    int status = basicvector_set(vector, -1, NULL, deallocation_function);
+    int status = basicvector_set(vector, -1, NULL, old_deallocation_function);
 
     char *error_message = malloc(256);
     sprintf(error_message, "Expected status to be BASICVECTOR_INVALID_INDEX, received %s instead", status_to_string(status));
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_set returns invalid index error when index is less than zero");
 }
 
 void test_if_basicvector_set_returns_memory_error_when_vector_is_null() {
-    int status = basicvector_set(NULL, 0, NULL, deallocation_function);
+    int status = basicvector_set(NULL, 0, NULL, old_deallocation_function);
 
     char *error_message = malloc(256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
@@ -308,7 +316,7 @@ void test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_insid
 
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_get returns invalid index error when no items are inside");
 }
@@ -341,7 +349,7 @@ void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_eq
 
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_get returns invalid index error when provided index is equal to length");
 }
@@ -366,7 +374,7 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_
     expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
     assert(result_ptr == item1_reference, "Expected result_ptr to have the same value as item1_reference");
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_get returns proper value when provided last item index and there is only one item inside vector");
 }
@@ -397,7 +405,7 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
     expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
     assert(result_ptr == item3_reference, "Expected result_ptr to have the same value as item3_reference");
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_get returns proper value when provided last item index");
 }
@@ -456,7 +464,7 @@ void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_fun
     assert(user_data == true, error_message);
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_find_index passes valid user data pointer to search function");
 }
@@ -490,7 +498,7 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
     assert(user_data == false, error_message);
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_find_index returns item not found and assigns null to result when vector is empty");
 }
@@ -521,7 +529,7 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 
     free(result);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_find index returns item not found and assigns null to result when vector has items and search_function does not match any items");
 }
@@ -561,7 +569,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
     assert(result == val3_reference, error_message);
     free(error_message);
 
-    free(vector);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_find_index returns success and assigns item to result when vector has at least two items and search function matches item");
 }
@@ -586,13 +594,13 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
     assert(result == val1_reference, error_message);
     free(error_message);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_find_index returns success and assigns item to result when vector has one item and search function matches item");
 }
 
 void test_if_basicvector_remove_returns_memory_error_when_vector_is_null() {
-    int status = basicvector_remove(NULL, 0, deallocation_function);
+    int status = basicvector_remove(NULL, 0, old_deallocation_function);
 
     expect_status(status, BASICVECTOR_MEMORY_ERROR);
 
@@ -604,11 +612,11 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_
 
     expect_status_success(basicvector_init(&vector));
 
-    int status = basicvector_remove(vector, -1, deallocation_function);
+    int status = basicvector_remove(vector, -1, old_deallocation_function);
 
     expect_status(status, BASICVECTOR_INVALID_INDEX);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove returns invalid index error when provided index is below zero");
 }
@@ -624,7 +632,7 @@ void test_if_basicvector_remove_returns_memory_error_when_provided_deallocation_
 
     expect_status(status, BASICVECTOR_MEMORY_ERROR);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove returns memory error when provided deallocation function is null");
 }
@@ -634,9 +642,9 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not
 
     expect_status_success(basicvector_init(&vector));
 
-    expect_status(basicvector_remove(vector, 0, deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 0, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove returns invalid index error when vector does not have any items");
 }
@@ -648,11 +656,11 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_
 
     expect_status_success(basicvector_push(vector, NULL));
 
-    expect_status(basicvector_remove(vector, 1, deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 1, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
 
     expect_length_to_be(vector, 1);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove returns invalid index error when vector has one item and provided index is 1");
 }
@@ -665,11 +673,11 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_two_
     expect_status_success(basicvector_push(vector, NULL));
     expect_status_success(basicvector_push(vector, NULL));
 
-    expect_status(basicvector_remove(vector, 2, deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 2, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
 
     expect_length_to_be(vector, 2);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove returns invalid index error when vector has two items and provided index is 2");
 }
@@ -688,11 +696,11 @@ void test_if_basicvector_remove_removes_first_item() {
 
     expect_length_to_be(vector, 1);
 
-    expect_status_success(basicvector_remove(vector, 0, deallocation_function));
+    expect_status_success(basicvector_remove(vector, 0, old_deallocation_function));
 
     expect_length_to_be(vector, 0);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove removes first item");
 }
@@ -712,11 +720,11 @@ void test_if_basicvector_remove_removes_second_item() {
 
     expect_length_to_be(vector, 2);
 
-    expect_status_success(basicvector_remove(vector, 1, deallocation_function));
+    expect_status_success(basicvector_remove(vector, 1, old_deallocation_function));
 
     expect_length_to_be(vector, 1);
 
-    basicvector_free(vector, deallocation_function);
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
     pass("basicvector_remove removes second item");
 }
@@ -737,13 +745,66 @@ void test_if_basicvector_remove_removes_third_item() {
 
     expect_length_to_be(vector, 3);
 
-    expect_status_success(basicvector_remove(vector, 2, deallocation_function));
+    expect_status_success(basicvector_remove(vector, 2, old_deallocation_function));
 
     expect_length_to_be(vector, 2);
 
-    basicvector_free(vector, deallocation_function);
+    basicvector_free(vector, deallocation_function, NULL);
 
     pass("basicvector_remove removes third item");
+}
+
+void test_if_basicvector_free_returns_memory_error_when_passed_vector_is_null() {
+    expect_status(basicvector_free(NULL, NULL, NULL), BASICVECTOR_MEMORY_ERROR);
+
+    pass("basicvector_free returns memory error when passed vector is null");
+}
+
+void test_if_basicvector_free_returns_success_when_deallocation_func_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_free returns success when deallocation func is null");
+}
+
+void deallocation_function_129783(void *item, void *user_data) {
+    int *item_reference = (int *) item;
+    int **item_references_touched = (int **) user_data;
+
+    for (int i = 0; i < 3; i++) {
+        if (item_references_touched[i] == 0) {
+            item_references_touched[i] = item_reference;
+            break;
+        }
+    }
+}
+
+void test_if_basicvector_free_executes_deallocation_function_with_valid_user_data_on_every_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item = 1;
+
+    int *item_references[] = { &item, &item, &item };
+    int *item_references_touched[] = { 0, 0, 0 };
+
+    for (int i = 0; i < 3; i++) {
+        expect_status_success(basicvector_push(vector, item_references[i]));
+    }
+
+    expect_status_success(basicvector_free(vector, deallocation_function_129783, item_references_touched));
+
+    for (int i = 0; i < 3; i++) {
+        char *error_message = malloc(sizeof(char) * 256);
+        sprintf(error_message, "Expected item reference to be %p, received %p", item_references[i], item_references_touched[i]);
+        assert(item_references[i] == item_references_touched[i], error_message);
+        free(error_message);
+    }
+
+    pass("basicvector_free executes deallocation function with valid user data on every item");
 }
 
 int main() {
@@ -790,6 +851,10 @@ int main() {
     test_if_basicvector_remove_removes_first_item();
     test_if_basicvector_remove_removes_second_item();
     test_if_basicvector_remove_removes_third_item();
+
+    test_if_basicvector_free_returns_memory_error_when_passed_vector_is_null();
+    test_if_basicvector_free_returns_success_when_deallocation_func_is_null();
+    test_if_basicvector_free_executes_deallocation_function_with_valid_user_data_on_every_item();
 
     pass("All passed");
 
