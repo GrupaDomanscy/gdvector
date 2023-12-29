@@ -142,7 +142,8 @@ int basicvector_set(
     struct basicvector_s *vector, 
     int index,
     void *item,
-    void (*deallocation_function)(void* item)
+    void (*deallocation_function)(void* item, void *user_data),
+    void *user_data
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
 
@@ -162,7 +163,9 @@ int basicvector_set(
 
             vector->cached_length++;
         } else {
-            deallocation_function(entry_to_affect->item);
+            if (deallocation_function != NULL) {
+                deallocation_function(entry_to_affect->item, user_data);
+            }
             entry_to_affect->item = item;
         }
 
@@ -200,8 +203,8 @@ int basicvector_set(
         examined_entry = examined_entry->next_entry;
     }
 
-    if (examined_entry->item != NULL) {
-        deallocation_function(examined_entry->item);
+    if (examined_entry->item != NULL && deallocation_function != NULL) {
+        deallocation_function(examined_entry->item, user_data);
     }
 
     examined_entry->item = item;
@@ -293,7 +296,9 @@ int basicvector_free(struct basicvector_s *vector, void (*deallocation_function)
     while (entry != NULL) {
         struct basicvector_entry_s *next_entry = entry->next_entry;
 
-        deallocation_function(entry->item, user_data);
+        if (deallocation_function != NULL) {
+            deallocation_function(entry->item, user_data);
+        }
 
         free(entry);
 

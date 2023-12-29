@@ -166,6 +166,94 @@ void test_if_basicvector_push_returns_memory_error_when_passed_null_as_a_vector(
     pass("basicvector_push returns memory error when passed null as a vector");
 }
 
+void test_if_basicvector_set_skips_execution_of_deallocation_function_when_it_is_null_and_there_is_one_item_inside_the_vector() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+    
+    expect_status_success(basicvector_set(vector, 0, NULL, NULL, NULL));
+
+    expect_length_to_be(vector, 1);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_set skips execution of deallocation function when it is null and there is one item inside the vector");
+}
+
+void test_if_basicvector_set_skips_execution_of_deallocation_function_when_it_is_null_and_there_are_two_items_inside_the_vector() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+    
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+
+    expect_status_success(basicvector_set(vector, 1, NULL, NULL, NULL));
+
+    expect_length_to_be(vector, 2);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_set skips execution of deallocation function when it is null and there are two items inside the vector");
+}
+
+bool FLAG_4 = false;
+
+void deallocation_function_FLAG_4(void *item, void *user_data) {
+    if (item == user_data) FLAG_4 = true;
+}
+
+void test_if_basicvector_set_executes_deallocation_function_and_provides_valid_item_and_user_data_to_it_when_there_is_one_item_inside_the_vector() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item = 0;
+    int *item_reference = &item;
+    
+    expect_status_success(basicvector_push(vector, item_reference));
+
+    expect_status_success(basicvector_set(vector, 0, NULL, deallocation_function_FLAG_4, item_reference));
+
+    assert(FLAG_4, "FLAG_4 is not true");
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_set executes deallocation function and provides valid item and user data to it when there is one item inside the vector");
+}
+
+void deallocation_function_basicvector_set_touched_item_reference(void *item, void *user_data) {
+    int **casted_user_data = (int **) user_data;
+
+    *casted_user_data = (int *) item;
+}
+
+void test_if_basicvector_set_executes_deallocation_function_and_provides_valid_item_and_user_data_to_it_when_there_are_two_items_inside_the_vector() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int item = 0;
+    int *item_references[2] = { &item, &item };
+    int *touched_item_reference = NULL;
+    
+    expect_status_success(basicvector_push(vector, item_references[0]));
+    expect_status_success(basicvector_push(vector, item_references[1]));
+
+    expect_status_success(basicvector_set(vector, 1, NULL, deallocation_function_basicvector_set_touched_item_reference, (void *) &touched_item_reference));
+
+    char *error_message = malloc(sizeof(char) * 256);
+    sprintf(error_message, "Expected touched_item_reference to be %p, received %p.", item_references[1], touched_item_reference);
+    assert(touched_item_reference == item_references[1], error_message);
+    free(error_message);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_set executes deallocation function and provides valid item and user data to it when there are two items inside the vector");
+}
+
 void test_if_basicvector_set_sets_item_in_the_middle_of_the_vector() {
     struct basicvector_s *vector;
 
@@ -179,7 +267,7 @@ void test_if_basicvector_set_sets_item_in_the_middle_of_the_vector() {
         expect_status_success(basicvector_push(vector, item_references[i]));
     }
 
-    expect_status_success(basicvector_set(vector, 1, item_references[3], old_deallocation_function));
+    expect_status_success(basicvector_set(vector, 1, item_references[3], deallocation_function, NULL));
 
     expect_item_to_be(vector, 0, item_references[0]);
     expect_item_to_be(vector, 1, item_references[3]);
@@ -204,7 +292,7 @@ void test_if_basicvector_set_fills_non_existent_items_with_null_items() {
 
     expect_status_success(basicvector_init(&vector));
 
-    expect_status_success(basicvector_set(vector, 5, item_references[3], old_deallocation_function));
+    expect_status_success(basicvector_set(vector, 5, item_references[3], deallocation_function, NULL));
 
     expect_item_to_be(vector, 0, NULL);
     expect_item_to_be(vector, 1, NULL);
@@ -230,7 +318,7 @@ void test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector
     int item = 99;
     int *item_reference = &item;
 
-    expect_status_success(basicvector_set(vector, 0, item_reference, NULL));
+    expect_status_success(basicvector_set(vector, 0, item_reference, NULL, NULL));
 
     expect_item_to_be(vector, 0, item_reference);
 
@@ -255,7 +343,7 @@ void test_if_basicvector_set_sets_first_item_when_there_are_more_than_one_inside
 
     expect_length_to_be(vector, 2);
 
-    expect_status_success(basicvector_set(vector, 0, item_reference, old_deallocation_function));
+    expect_status_success(basicvector_set(vector, 0, item_reference, deallocation_function, NULL));
 
     expect_item_to_be(vector, 0, item_reference);
     expect_item_to_be(vector, 1, second_item_reference);
@@ -272,7 +360,7 @@ void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than
 
     expect_status_success(basicvector_init(&vector));
 
-    int status = basicvector_set(vector, -1, NULL, old_deallocation_function);
+    int status = basicvector_set(vector, -1, NULL, deallocation_function, NULL);
 
     char *error_message = malloc(256);
     sprintf(error_message, "Expected status to be BASICVECTOR_INVALID_INDEX, received %s instead", status_to_string(status));
@@ -284,7 +372,7 @@ void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than
 }
 
 void test_if_basicvector_set_returns_memory_error_when_vector_is_null() {
-    int status = basicvector_set(NULL, 0, NULL, old_deallocation_function);
+    int status = basicvector_set(NULL, 0, NULL, NULL, NULL);
 
     char *error_message = malloc(256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
@@ -838,6 +926,11 @@ void test_if_basicvector_free_returns_success_when_deallocation_func_is_null() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+
     expect_status_success(basicvector_free(vector, NULL, NULL));
 
     pass("basicvector_free returns success when deallocation func is null");
@@ -893,6 +986,10 @@ int main() {
     test_if_basicvector_push_returns_memory_error_when_passed_null_as_a_vector();
 
     // basicvector_set
+    test_if_basicvector_set_skips_execution_of_deallocation_function_when_it_is_null_and_there_is_one_item_inside_the_vector();
+    test_if_basicvector_set_skips_execution_of_deallocation_function_when_it_is_null_and_there_are_two_items_inside_the_vector();
+    test_if_basicvector_set_executes_deallocation_function_and_provides_valid_item_and_user_data_to_it_when_there_is_one_item_inside_the_vector();
+    test_if_basicvector_set_executes_deallocation_function_and_provides_valid_item_and_user_data_to_it_when_there_are_two_items_inside_the_vector();
     test_if_basicvector_set_sets_item_in_the_middle_of_the_vector();
     test_if_basicvector_set_fills_non_existent_items_with_null_items();
     test_if_basicvector_set_sets_first_item_when_no_items_are_inside_the_vector();
