@@ -35,7 +35,8 @@ int basicvector_set(
 int basicvector_remove(
     struct basicvector_s *vector, 
     int index, 
-    void (*deallocation_function)(void* item)
+    void (*deallocation_function)(void* item, void *user_data),
+    void *user_data
 );
 
 int basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item, void *user_data), void *user_data);

@@ -608,7 +608,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 }
 
 void test_if_basicvector_remove_returns_memory_error_when_vector_is_null() {
-    int status = basicvector_remove(NULL, 0, old_deallocation_function);
+    int status = basicvector_remove(NULL, 0, deallocation_function, NULL);
 
     expect_status(status, BASICVECTOR_MEMORY_ERROR);
 
@@ -620,7 +620,7 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_
 
     expect_status_success(basicvector_init(&vector));
 
-    int status = basicvector_remove(vector, -1, old_deallocation_function);
+    int status = basicvector_remove(vector, -1, deallocation_function, NULL);
 
     expect_status(status, BASICVECTOR_INVALID_INDEX);
 
@@ -629,20 +629,87 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_
     pass("basicvector_remove returns invalid index error when provided index is below zero");
 }
 
-void test_if_basicvector_remove_returns_memory_error_when_provided_deallocation_function_is_null() {
+void test_if_basicvector_remove_skips_execution_of_deallocation_function_when_provided_deallocation_function_is_null_and_vector_has_one_item() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
 
     expect_status_success(basicvector_push(vector, NULL));
 
-    int status = basicvector_remove(vector, 0, NULL);
+    expect_status_success(basicvector_remove(vector, 0, NULL, NULL));
 
-    expect_status(status, BASICVECTOR_MEMORY_ERROR);
+    expect_length_to_be(vector, 0);
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_remove returns memory error when provided deallocation function is null");
+    pass("basicvector_remove skips execution of deallocation_function when provided deallocation_function is null and vector has one item");
+}
+
+void test_if_basicvector_remove_skips_execution_of_deallocation_function_when_provided_deallocation_function_is_null_and_vector_has_two_items() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+
+    expect_status_success(basicvector_remove(vector, 1, NULL, NULL));
+
+    expect_length_to_be(vector, 1);
+
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
+
+    pass("basicvector_remove skips execution of deallocation_function when provided deallocation_function is null and vector has two items");
+}
+
+bool FLAG_1 = false;
+
+void deallocation_function_FLAG_1(void *item, void *user_data) {
+    if (item == user_data) FLAG_1 = true;
+}
+
+void test_if_basicvector_remove_executes_deallocation_function_on_every_item_with_valid_user_data_and_item_when_used_on_first_item_of_vector() {
+    struct basicvector_s *vector;
+
+    int item = 1;
+    int *item_reference = &item;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, item_reference));
+
+    expect_status_success(basicvector_remove(vector, 0, deallocation_function_FLAG_1, item_reference));
+
+    assert(FLAG_1, "FLAG_1 is not true");
+
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
+    
+    pass("basicvector_remove executes deallocation function on every item with valid user data when used on first item of vector");
+}
+
+bool FLAG_2 = false;
+
+void deallocation_function_FLAG_2(void *item, void *user_data) {
+    if (item == user_data) FLAG_2 = true;
+}
+
+void test_if_basicvector_remove_executes_deallocation_function_on_every_item_with_valid_user_data_and_item_when_used_on_second_item_of_vector() {
+    struct basicvector_s *vector;
+
+    int item = 1;
+    int *item_reference = &item;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, item_reference));
+
+    expect_status_success(basicvector_remove(vector, 0, deallocation_function_FLAG_2, item_reference));
+
+    assert(FLAG_2, "FLAG_2 is not true");
+
+    expect_status_success(basicvector_free(vector, deallocation_function, NULL));
+    
+    pass("basicvector_remove executes deallocation function on every item with valid user data when used on second item of vector");
 }
 
 void test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not_have_any_items() {
@@ -650,7 +717,7 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not
 
     expect_status_success(basicvector_init(&vector));
 
-    expect_status(basicvector_remove(vector, 0, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 0, deallocation_function, NULL), BASICVECTOR_INVALID_INDEX);
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
@@ -664,7 +731,7 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_
 
     expect_status_success(basicvector_push(vector, NULL));
 
-    expect_status(basicvector_remove(vector, 1, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 1, deallocation_function, NULL), BASICVECTOR_INVALID_INDEX);
 
     expect_length_to_be(vector, 1);
 
@@ -681,7 +748,7 @@ void test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_two_
     expect_status_success(basicvector_push(vector, NULL));
     expect_status_success(basicvector_push(vector, NULL));
 
-    expect_status(basicvector_remove(vector, 2, old_deallocation_function), BASICVECTOR_INVALID_INDEX);
+    expect_status(basicvector_remove(vector, 2, deallocation_function, NULL), BASICVECTOR_INVALID_INDEX);
 
     expect_length_to_be(vector, 2);
 
@@ -703,7 +770,7 @@ void test_if_basicvector_remove_removes_first_item() {
 
     expect_length_to_be(vector, 1);
 
-    expect_status_success(basicvector_remove(vector, 0, old_deallocation_function));
+    expect_status_success(basicvector_remove(vector, 0, deallocation_function, NULL));
 
     expect_length_to_be(vector, 0);
 
@@ -727,7 +794,7 @@ void test_if_basicvector_remove_removes_second_item() {
 
     expect_length_to_be(vector, 2);
 
-    expect_status_success(basicvector_remove(vector, 1, old_deallocation_function));
+    expect_status_success(basicvector_remove(vector, 1, deallocation_function, NULL));
 
     expect_length_to_be(vector, 1);
 
@@ -752,7 +819,7 @@ void test_if_basicvector_remove_removes_third_item() {
 
     expect_length_to_be(vector, 3);
 
-    expect_status_success(basicvector_remove(vector, 2, old_deallocation_function));
+    expect_status_success(basicvector_remove(vector, 2, deallocation_function, NULL));
 
     expect_length_to_be(vector, 2);
 
@@ -850,11 +917,13 @@ int main() {
 
     test_if_basicvector_remove_returns_memory_error_when_vector_is_null();
     test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_is_below_zero();
-    test_if_basicvector_remove_returns_memory_error_when_provided_deallocation_function_is_null();
+    test_if_basicvector_remove_skips_execution_of_deallocation_function_when_provided_deallocation_function_is_null_and_vector_has_one_item();
+    test_if_basicvector_remove_skips_execution_of_deallocation_function_when_provided_deallocation_function_is_null_and_vector_has_two_items();
+    test_if_basicvector_remove_executes_deallocation_function_on_every_item_with_valid_user_data_and_item_when_used_on_first_item_of_vector();
+    test_if_basicvector_remove_executes_deallocation_function_on_every_item_with_valid_user_data_and_item_when_used_on_second_item_of_vector();
     test_if_basicvector_remove_returns_invalid_index_error_when_vector_does_not_have_any_items();
     test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_one_item_and_provided_index_is_1();
     test_if_basicvector_remove_returns_invalid_index_error_when_vector_has_two_items_and_provided_index_is_2();
-
     test_if_basicvector_remove_removes_first_item();
     test_if_basicvector_remove_removes_second_item();
     test_if_basicvector_remove_removes_third_item();

@@ -212,11 +212,10 @@ int basicvector_set(
 int basicvector_remove(
     struct basicvector_s *vector, 
     int index, 
-    void (*deallocation_function)(void* item)
+    void (*deallocation_function)(void* item, void *user_data),
+    void *user_data
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
-
-    if (deallocation_function == NULL) return BASICVECTOR_MEMORY_ERROR;
 
     int length;
     
@@ -236,7 +235,9 @@ int basicvector_remove(
             return BASICVECTOR_INVALID_INDEX;
         }
 
-        deallocation_function(entry_to_affect->item);
+        if (deallocation_function != NULL) {
+            deallocation_function(entry_to_affect->item, user_data);
+        }
 
         vector->starting_entry = entry_to_affect->next_entry;
 
@@ -271,7 +272,9 @@ int basicvector_remove(
 
     entry_before->next_entry = entry_after;
 
-    deallocation_function(entry_to_remove->item);
+    if (deallocation_function != NULL) {
+        deallocation_function(entry_to_remove->item, user_data);
+    }
     
     free(entry_to_remove);
 
