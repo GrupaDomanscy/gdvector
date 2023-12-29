@@ -335,13 +335,12 @@ void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_eq
     expect_status_success(basicvector_push(vector, item1_reference));
     expect_status_success(basicvector_push(vector, item2_reference));
 
-    int result;
-    int *result_ptr;
+    int *result;
 
     int length;
     expect_status_success(basicvector_length(vector, &length));
 
-    int status = basicvector_get(vector, length, (void **) &result_ptr);
+    int status = basicvector_get(vector, length, (void **) &result);
 
     char *error_message = malloc(256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
@@ -365,14 +364,13 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_
 
     expect_status_success(basicvector_push(vector, item1_reference));
 
-    int result;
-    int *result_ptr;
+    int *result;
 
     int length;
     expect_status_success(basicvector_length(vector, &length));
 
-    expect_status_success(basicvector_get(vector, length - 1, (void **) &result_ptr));
-    assert(result_ptr == item1_reference, "Expected result_ptr to have the same value as item1_reference");
+    expect_status_success(basicvector_get(vector, length - 1, (void **) &result));
+    assert(result == item1_reference, "Expected result_ptr to have the same value as item1_reference");
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
@@ -396,7 +394,6 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
     expect_status_success(basicvector_push(vector, item2_reference));
     expect_status_success(basicvector_push(vector, item3_reference));
 
-    int result;
     int *result_ptr;
 
     int length;
@@ -422,6 +419,9 @@ void test_if_basicvector_get_returns_memory_error_when_vector_is_null() {
 }
 
 bool search_function__passes_valid_user_data_pointer(void *user_data, void *item) {
+    // silence the compiler
+    item = item;
+
     bool *user_data_casted = (bool *) user_data;
     *user_data_casted = true;
 
@@ -470,6 +470,10 @@ void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_fun
 }
 
 bool only_true_search_function(void *user_data, void *item) {
+    // silence the compiler
+    user_data = user_data;
+    item = item;
+
     return true;
 }
 
@@ -504,6 +508,10 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 }
 
 bool only_false_search_function(void *user_data, void *item) {
+    // silence the compiler
+    user_data = user_data;
+    item = item;
+
     return false;
 }
 
@@ -690,7 +698,6 @@ void test_if_basicvector_remove_removes_first_item() {
     int random_item = 1;
 
     int *random_item_first_ref = &random_item;
-    int *random_item_second_ref = &random_item;
 
     expect_status_success(basicvector_push(vector, random_item_first_ref));
 
