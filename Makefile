@@ -1,5 +1,5 @@
 major_version = 0
-minor_version = 2
+minor_version = 3
 patch_version = 0
 
 lib_version = $(major_version).$(minor_version).$(patch_version)
