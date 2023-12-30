@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "basicvector.h"
 
@@ -98,6 +99,35 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
 
     *result = entry->item;
     return BASICVECTOR_SUCCESS;
+}
+
+int basicvector_find_index(
+    struct basicvector_s *vector,
+    int *result,
+    bool (*search_function)(void *item, void *user_data),
+    void *user_data
+) {
+    if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
+    if (search_function == NULL || result == NULL) return BASICVECTOR_INVALID_ARGUMENT;
+
+    if (vector->starting_entry == NULL) {
+        return BASICVECTOR_ITEM_NOT_FOUND;
+    }
+
+    int i = 0;
+    struct basicvector_entry_s *examined_entry = vector->starting_entry;
+
+    while (examined_entry != NULL) {
+        if (search_function(examined_entry->item, user_data)) {
+            *result = i;
+            return BASICVECTOR_SUCCESS;
+        }
+
+        examined_entry = examined_entry->next_entry;
+        i++;
+    }
+
+    return BASICVECTOR_ITEM_NOT_FOUND;
 }
 
 int basicvector_find(

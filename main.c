@@ -23,6 +23,8 @@ char *status_to_string(int status) {
             return "BASICVECTOR_ITEM_NOT_FOUND";
         case -3:
             return "BASICVECTOR_INVALID_INDEX";
+        case BASICVECTOR_INVALID_ARGUMENT:
+            return "BASICVECTOR_INVALID_ARGUMENT";
         default:
             return "Unknown status";
     }
@@ -967,6 +969,170 @@ void test_if_basicvector_free_executes_deallocation_function_with_valid_user_dat
     pass("basicvector_free executes deallocation function with valid user data on every item");
 }
 
+bool basicvector_find_index_test_1__search_function(void *item, void *user_data) {
+    // silence compiler
+    item = item;
+    user_data = user_data;
+
+    return false;
+}
+
+void basicvector_find_index_test_1__test_if_returns_memory_error_when_provided_vector_is_null() {
+    int result;
+
+    expect_status(basicvector_find_index(NULL, &result, basicvector_find_index_test_1__search_function, NULL), BASICVECTOR_MEMORY_ERROR);
+
+    pass("basicvector_find_index returns memory error when provided vector is null");
+}
+
+void basicvector_find_index_test_2__test_if_returns_invalid_argument_when_provided_search_function_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int result;
+
+    expect_status(basicvector_find_index(vector, &result, NULL, NULL), BASICVECTOR_INVALID_ARGUMENT);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index returns invalid argument when provided search function is null");
+}
+
+bool basicvector_find_index_test_3__search_function(void *item, void *user_data) {
+    // silence compiler
+    item = item;
+    user_data = user_data;
+
+    return false;
+}
+
+void basicvector_find_index_test_3__test_if_returns_invalid_argument_when_provided_result_ptr_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status(basicvector_find_index(vector, NULL, basicvector_find_index_test_3__search_function, NULL), BASICVECTOR_INVALID_ARGUMENT);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index returns invalid argument when provided result ptr is null");
+}
+
+bool basicvector_find_index_test_4__search_function(void *item, void *user_data) {
+    // silence compiler
+    item = item;
+    user_data = user_data;
+
+    return true;
+}
+
+void basicvector_find_index_test_4__test_if_returns_item_not_found_error_when_no_items_are_inside() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    int result;
+
+    expect_status(basicvector_find_index(vector, &result, basicvector_find_index_test_4__search_function, NULL), BASICVECTOR_ITEM_NOT_FOUND);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index returns item not found error when no items are inside");
+}
+
+bool basicvector_find_index_test_5__search_function(void *item, void *user_data) {
+    // silence compiler
+    item = item;
+    user_data = user_data;
+
+    return false;
+}
+
+void basicvector_find_index_test_5__test_if_returns_item_not_found_error_when_search_function_returns_false_on_every_item() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, NULL));
+    expect_status_success(basicvector_push(vector, NULL));
+
+    int result;
+
+    expect_status(basicvector_find_index(vector, &result, basicvector_find_index_test_5__search_function, NULL), BASICVECTOR_ITEM_NOT_FOUND);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index returns item not found error when search function returns false on every item");
+}
+
+bool basicvector_find_index_test_6__search_function(void *item, void *user_data) {
+    return item == user_data;
+}
+
+void basicvector_find_index_test_6__test_if_returns_success_and_assigns_index_to_result_when_search_function_returns_true_on_some_item() {
+    struct basicvector_s *vector;
+
+    int item = 1;
+    int item2 = 0;
+    int *references[2] = {&item, &item2};
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, references[0]));
+    expect_status_success(basicvector_push(vector, references[1]));
+
+    int result;
+
+    expect_status_success(basicvector_find_index(vector, &result, basicvector_find_index_test_6__search_function, references[1]));
+
+    char *error_message = malloc(sizeof(char) * 256);
+    sprintf(error_message, "Expected result to be %d, received %d", 1, result);
+    assert(result == 1, error_message);
+    free(error_message);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index returns success and assigns index to result when search function returns true on some item");
+}
+
+bool basicvector_find_index_test_7__search_function(void *item, void *user_data) {
+    int **items = (int **) user_data;
+
+    for (int i = 0; i < 3; i++) {
+        if (items[i] == 0) {
+            items[i] = item;
+            break;
+        }
+    }
+
+    return false;
+}
+
+void basicvector_find_index_test_7__test_if_goes_through_every_item_and_passes_correct_arguments() {
+    struct basicvector_s *vector;
+
+    int item = 1;
+    int *references[3] = {&item, &item, &item};
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status_success(basicvector_push(vector, references[0]));
+    expect_status_success(basicvector_push(vector, references[1]));
+    expect_status_success(basicvector_push(vector, references[2]));
+
+    int result;
+    int *touched_references[3] = { 0, 0, 0 };
+
+    expect_status(basicvector_find_index(vector, &result, basicvector_find_index_test_7__search_function, touched_references), BASICVECTOR_ITEM_NOT_FOUND);
+
+    for (int i = 0; i < 3; i++) {
+        assert(references[i] == touched_references[i], "One of references is not the same as corresponding touched reference");
+    }
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find_index goes through every item and passes correct arguments");
+}
+
 int main() {
     test_if_basicvector_init_returns_valid_struct_pointer();
 
@@ -1021,6 +1187,15 @@ int main() {
     test_if_basicvector_free_returns_memory_error_when_passed_vector_is_null();
     test_if_basicvector_free_returns_success_when_deallocation_func_is_null();
     test_if_basicvector_free_executes_deallocation_function_with_valid_user_data_on_every_item();
+
+    // basicvector_find_index
+    basicvector_find_index_test_1__test_if_returns_memory_error_when_provided_vector_is_null();
+    basicvector_find_index_test_2__test_if_returns_invalid_argument_when_provided_search_function_is_null();
+    basicvector_find_index_test_3__test_if_returns_invalid_argument_when_provided_result_ptr_is_null();
+    basicvector_find_index_test_4__test_if_returns_item_not_found_error_when_no_items_are_inside();
+    basicvector_find_index_test_5__test_if_returns_item_not_found_error_when_search_function_returns_false_on_every_item();
+    basicvector_find_index_test_6__test_if_returns_success_and_assigns_index_to_result_when_search_function_returns_true_on_some_item();
+    basicvector_find_index_test_7__test_if_goes_through_every_item_and_passes_correct_arguments();
 
     pass("All passed");
 
