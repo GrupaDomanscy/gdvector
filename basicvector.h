@@ -16,10 +16,10 @@ int basicvector_push(struct basicvector_s *vector, void *item);
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
-int basicvector_find_index(
+int basicvector_find(
     struct basicvector_s *vector, 
     void **result,
-    bool (*search_function)(void *user_data, void *item), 
+    bool (*search_function)(void *item, void *user_data), 
     void *user_data
 );
 

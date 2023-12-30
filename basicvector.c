@@ -100,10 +100,10 @@ int basicvector_get(struct basicvector_s *vector, int index, void **result) {
     return BASICVECTOR_SUCCESS;
 }
 
-int basicvector_find_index(
+int basicvector_find(
     struct basicvector_s *vector, 
     void **result,
-    bool (*search_function)(void *user_data, void *item),
+    bool (*search_function)(void *item, void *user_data),
     void *user_data
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
@@ -116,7 +116,7 @@ int basicvector_find_index(
     struct basicvector_entry_s *examined_entry = vector->starting_entry;
 
     while (examined_entry != NULL) {
-        if (search_function(user_data, examined_entry->item)) {
+        if (search_function(examined_entry->item, user_data)) {
             *result = examined_entry->item;
             return BASICVECTOR_SUCCESS;
         }

@@ -508,7 +508,18 @@ void test_if_basicvector_get_returns_memory_error_when_vector_is_null() {
     pass("basicvector_get returns memory error when vector is null");
 }
 
-bool search_function__passes_valid_user_data_pointer(void *user_data, void *item) {
+void test_if_basicvector_find_returns_memory_error_when_vector_is_null() {
+    int status = basicvector_find(NULL, NULL, NULL, NULL);
+
+    char *error_message = malloc(sizeof(char) * 256);
+    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
+    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
+    free(error_message);
+
+    pass("basicvector_find returns memory error when vector is null");
+}
+
+bool search_function__passes_valid_user_data_pointer(void *item, void *user_data) {
     // silence the compiler
     item = item;
 
@@ -518,18 +529,7 @@ bool search_function__passes_valid_user_data_pointer(void *user_data, void *item
     return false;
 }
 
-void test_if_basicvector_find_index_returns_memory_error_when_vector_is_null() {
-    int status = basicvector_find_index(NULL, NULL, NULL, NULL);
-
-    char *error_message = malloc(sizeof(char) * 256);
-    sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
-    assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
-    free(error_message);
-
-    pass("basicvector_find_index returns memory error when vector is null");
-}
-
-void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function() {
+void test_if_basicvector_find_passes_valid_user_data_pointer_to_search_function() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
@@ -541,31 +541,24 @@ void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_fun
     void *result;
     bool user_data = false;
 
-    basicvector_find_index(
+    expect_status(basicvector_find(
         vector, &result,
         search_function__passes_valid_user_data_pointer, 
         &user_data
-    );
+    ), BASICVECTOR_ITEM_NOT_FOUND);
+
 
     char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected user_data to be true, received %s", bool_to_string(user_data));
-    assert(user_data == true, error_message);
+    assert(user_data, error_message);
     free(error_message);
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_find_index passes valid user data pointer to search function");
+    pass("basicvector_find passes valid user data pointer to search function");
 }
 
-bool only_true_search_function(void *user_data, void *item) {
-    // silence the compiler
-    user_data = user_data;
-    item = item;
-
-    return true;
-}
-
-void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty() {
+void test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
@@ -573,7 +566,7 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
     void *result;
     bool user_data = false;
 
-    int status = basicvector_find_index(vector, &result, search_function__passes_valid_user_data_pointer, &user_data);
+    int status = basicvector_find(vector, &result, search_function__passes_valid_user_data_pointer, &user_data);
 
     char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
@@ -592,7 +585,7 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_find_index returns item not found and assigns null to result when vector is empty");
+    pass("basicvector_find returns item not found and assigns null to result when vector is empty");
 }
 
 bool only_false_search_function(void *user_data, void *item) {
@@ -603,7 +596,7 @@ bool only_false_search_function(void *user_data, void *item) {
     return false;
 }
 
-void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items() {
+void test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
@@ -611,7 +604,7 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
     int temp = 1;
     int *result = &temp;
 
-    int status = basicvector_find_index(vector, (void **) &result, only_false_search_function, NULL);
+    int status = basicvector_find(vector, (void **) &result, only_false_search_function, NULL);
 
     char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
@@ -627,14 +620,14 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_find index returns item not found and assigns null to result when vector has items and search_function does not match any items");
+    pass("basicvector_find returns item not found and assigns null to result when vector has items and search_function does not match any items");
 }
 
-bool return_true_on_equal_with_user_data_search_function(void *user_data, void *item) {
+bool return_true_on_equal_with_user_data_search_function(void *item, void *user_data) {
     return user_data == item;
 }
 
-void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item() {
+void test_if_basicvector_find_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
@@ -657,7 +650,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
     int *result = &temp1;
 
     expect_status_success(
-        basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val3_reference)
+        basicvector_find(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val3_reference)
     );
 
     char *error_message = malloc(sizeof(char) * 256);
@@ -667,10 +660,10 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_find_index returns success and assigns item to result when vector has at least two items and search function matches item");
+    pass("basicvector_find returns success and assigns item to result when vector has at least two items and search function matches item");
 }
 
-void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item() {
+void test_if_basicvector_find_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item() {
     struct basicvector_s *vector;
 
     expect_status_success(basicvector_init(&vector));
@@ -683,7 +676,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 
     int *result = NULL;
 
-    expect_status_success(basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val1_reference));
+    expect_status_success(basicvector_find(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val1_reference));
 
     char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result to be equal to val1_reference (%p), received %p", val1_reference, result);
@@ -692,7 +685,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 
     expect_status_success(basicvector_free(vector, deallocation_function, NULL));
 
-    pass("basicvector_find_index returns success and assigns item to result when vector has one item and search function matches item");
+    pass("basicvector_find returns success and assigns item to result when vector has one item and search function matches item");
 }
 
 void test_if_basicvector_remove_returns_memory_error_when_vector_is_null() {
@@ -1004,13 +997,13 @@ int main() {
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index_and_there_is_only_one_item_inside_vector();
     test_if_basicvector_get_returns_proper_value_when_provided_last_item_index();
 
-    // find index
-    test_if_basicvector_find_index_returns_memory_error_when_vector_is_null();
-    test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_function();
-    test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty();
-    test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();
-    test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item();
-    test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item();
+    // find
+    test_if_basicvector_find_returns_memory_error_when_vector_is_null();
+    test_if_basicvector_find_passes_valid_user_data_pointer_to_search_function();
+    test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty();
+    test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();
+    test_if_basicvector_find_returns_success_and_assigns_item_to_result_when_vector_has_at_least_two_items_and_search_function_matches_item();
+    test_if_basicvector_find_returns_success_and_assigns_item_to_result_when_vector_has_one_item_and_search_function_matches_item();
 
     test_if_basicvector_remove_returns_memory_error_when_vector_is_null();
     test_if_basicvector_remove_returns_invalid_index_error_when_provided_index_is_below_zero();
