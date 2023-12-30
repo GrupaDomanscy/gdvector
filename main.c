@@ -33,7 +33,7 @@ char *bool_to_string(bool payload) {
 }
 
 void expect_status(int received, int expected) {
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be %s, received %s instead", status_to_string(expected), status_to_string(received));
     assert(received == expected, error_message);
     free(error_message);
@@ -42,7 +42,8 @@ void expect_status(int received, int expected) {
 void expect_status_success(int status) {
     char *returned_status = status_to_string(status);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
+
 
     sprintf(error_message, "Expected status to be BASICVECTOR_SUCCESS, received %s", returned_status);
 
@@ -55,7 +56,7 @@ void expect_length_to_be(struct basicvector_s *vector, int expected_length) {
     int length;
     expect_status_success(basicvector_length(vector, &length));
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected length to be %d, received %d", expected_length, length);
     assert(length == expected_length, error_message);
     free(error_message);
@@ -73,9 +74,10 @@ void expect_item_to_be(struct basicvector_s *vector, int index, int *expected_va
 
     expect_status_success(basicvector_get(vector, index, (void **) &received));
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected %p to be equal to %p", received, expected_value);
     assert(received == expected_value, error_message);
+    free(error_message);
 }
 
 void old_deallocation_function(void *item) {
@@ -158,7 +160,7 @@ void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
 void test_if_basicvector_push_returns_memory_error_when_passed_null_as_a_vector() {
     int status = basicvector_push(NULL, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
     assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
     free(error_message);
@@ -362,7 +364,7 @@ void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than
 
     int status = basicvector_set(vector, -1, NULL, deallocation_function, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_INVALID_INDEX, received %s instead", status_to_string(status));
     free(error_message);
 
@@ -374,7 +376,7 @@ void test_if_basicvector_set_returns_invalid_index_error_when_index_is_less_than
 void test_if_basicvector_set_returns_memory_error_when_vector_is_null() {
     int status = basicvector_set(NULL, 0, NULL, NULL, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
     assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
     free(error_message);
@@ -392,13 +394,13 @@ void test_if_basicvector_get_returns_invalid_index_error_when_no_items_are_insid
 
     int status = basicvector_get(vector, 0, (void **) &result_ptr);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status BASICVECTOR_INVALID_INDEX, received %s", status_to_string(status));
     assert(status != BASICVECTOR_INVALID_INDEX, error_message);
 
     free(error_message);
 
-    error_message = malloc(256);
+    error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result_ptr to be NULL, received %p instead.", result_ptr);
     assert(result_ptr == NULL, error_message);
 
@@ -430,7 +432,7 @@ void test_if_basicvector_get_returns_item_not_found_error_when_provided_index_eq
 
     int status = basicvector_get(vector, length, (void **) &result);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
     assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
 
@@ -498,7 +500,7 @@ void test_if_basicvector_get_returns_proper_value_when_provided_last_item_index(
 void test_if_basicvector_get_returns_memory_error_when_vector_is_null() {
     int status = basicvector_get(NULL, 0, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
     assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
     free(error_message);
@@ -519,7 +521,7 @@ bool search_function__passes_valid_user_data_pointer(void *user_data, void *item
 void test_if_basicvector_find_index_returns_memory_error_when_vector_is_null() {
     int status = basicvector_find_index(NULL, NULL, NULL, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_MEMORY_ERROR, received %s instead", status_to_string(status));
     assert(status == BASICVECTOR_MEMORY_ERROR, error_message);
     free(error_message);
@@ -536,7 +538,7 @@ void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_fun
         basicvector_push(vector, NULL)
     );
 
-    void *result = malloc(1);
+    void *result;
     bool user_data = false;
 
     basicvector_find_index(
@@ -545,9 +547,7 @@ void test_if_basicvector_find_index_passes_valid_user_data_pointer_to_search_fun
         &user_data
     );
 
-    free(result);
-
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected user_data to be true, received %s", bool_to_string(user_data));
     assert(user_data == true, error_message);
     free(error_message);
@@ -575,17 +575,17 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 
     int status = basicvector_find_index(vector, &result, search_function__passes_valid_user_data_pointer, &user_data);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
     assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
     free(error_message);
 
-    error_message = malloc(256);
+    error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result to be null, received %p", result);
     assert(result == NULL, error_message);
     free(error_message);
 
-    error_message = malloc(512);
+    error_message = malloc(sizeof(char) * 512);
     sprintf(error_message, "Expected user_data to be false, received %s instead. If this check fails, it indicates that search function has been run, but it shouldn't be!", bool_to_string(user_data));
     assert(user_data == false, error_message);
     free(error_message);
@@ -613,12 +613,12 @@ void test_if_basicvector_find_index_returns_item_not_found_and_assigns_null_to_r
 
     int status = basicvector_find_index(vector, (void **) &result, only_false_search_function, NULL);
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected status to be BASICVECTOR_ITEM_NOT_FOUND, received %s", status_to_string(status));
     assert(status == BASICVECTOR_ITEM_NOT_FOUND, error_message);
     free(error_message);
 
-    error_message = malloc(256);
+    error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result to be null, received %p", result);
     assert(result == NULL, error_message);
     free(error_message);
@@ -660,7 +660,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
         basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val3_reference)
     );
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result to be equal to val3_reference (%p), received %p", val3_reference, result);
     assert(result == val3_reference, error_message);
     free(error_message);
@@ -685,7 +685,7 @@ void test_if_basicvector_find_index_returns_success_and_assigns_item_to_result_w
 
     expect_status_success(basicvector_find_index(vector, (void **) &result, return_true_on_equal_with_user_data_search_function, val1_reference));
 
-    char *error_message = malloc(256);
+    char *error_message = malloc(sizeof(char) * 256);
     sprintf(error_message, "Expected result to be equal to val1_reference (%p), received %p", val1_reference, result);
     assert(result == val1_reference, error_message);
     free(error_message);
