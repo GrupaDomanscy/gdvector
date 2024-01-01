@@ -51,6 +51,21 @@ int basicvector_push(struct basicvector_s *vector, void *item);
  */
 int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
+/*
+ * Find index of item in vector structure
+ *
+ * Params:
+ *  vector          - Pointer to vector structure
+ *  result          - Pointer to int variable, if everything will go ok, this variable will be equal to index of wanted item inside the vector
+ *  search_function - search function callback. Every item will go through this function and if function returns true, this item's index will be assigned to result ptr (see result argument)
+ *  user_data       - pointer to context data that will be passed to search_function, you can then use it to determine if item is correct to context data
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR        - returned if passed vector is NULL
+ *  BASICVECTOR_INVALID_ARGUMENT    - returned if passed search_function or result is NULL
+ *  BASICVECTOR_ITEM_NOT_FOUND      - returned if search function returned false on every item or if vector is empty
+ *  BASICVECTOR_SUCCESS             - returned if everything went ok
+ */
 int basicvector_find_index(
     struct basicvector_s *vector,
     int *result,
