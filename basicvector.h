@@ -94,6 +94,17 @@ int basicvector_find(
     void *user_data
 );
 
+/*
+ * Get count of total items inside the vector
+ *
+ * Params:
+ *  vector  - Pointer to vector structure
+ *  result  - Pointer to int variable that will receive the count
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - received when vector is null
+ *  BASICVECTOR_SUCCESS         - received when everything went ok
+ */
 int basicvector_length(struct basicvector_s *vector, int *result);
 
 int basicvector_set(
