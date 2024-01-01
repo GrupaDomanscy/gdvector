@@ -64,13 +64,6 @@ void expect_length_to_be(struct basicvector_s *vector, int expected_length) {
     free(error_message);
 }
 
-// TODO: Unused, remove in the future
-void expect_multiple_status_success(int status[], int length) {
-    for (int i = 0; i < length; i++) {
-        expect_status_success(status[i]);
-    }
-}
-
 void expect_item_to_be(struct basicvector_s *vector, int index, int *expected_value) {
     int *received;
 
