@@ -164,7 +164,7 @@ int basicvector_length(struct basicvector_s *vector, int *result) {
         return BASICVECTOR_MEMORY_ERROR;
     }
 
-    // TODO: result ptr is not checked against NULL, might segment fault
+    if (result == NULL) return BASICVECTOR_INVALID_ARGUMENT;
 
     *result = vector->cached_length;
 

@@ -131,6 +131,18 @@ void test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector(
     pass("basicvector_length returns memory error when passed null as vector");
 }
 
+void test_if_basicvector_length_returns_invalid_argument_when_passed_null_as_result() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status(basicvector_length(vector, NULL), BASICVECTOR_INVALID_ARGUMENT);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_length returns invalid argument when passed null as result");
+}
+
 void test_if_basicvector_push_pushes_item_at_the_end_of_the_vector() {
     struct basicvector_s *vector;
 
@@ -1173,6 +1185,7 @@ int main() {
     // basicvector length
     test_if_basicvector_length_returns_valid_length();
     test_if_basicvector_length_returns_memory_error_when_passed_null_as_vector();
+    test_if_basicvector_length_returns_invalid_argument_when_passed_null_as_result();
 
     // basicvector_push
     test_if_basicvector_push_pushes_item_at_the_end_of_the_vector();
