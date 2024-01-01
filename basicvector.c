@@ -253,13 +253,8 @@ int basicvector_remove(
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
 
-    int length;
+    int length = vector->cached_length;
     
-    int status = basicvector_length(vector, &length);
-    if (status != BASICVECTOR_SUCCESS) {
-        return status;
-    }
-
     if (index < 0 || index + 1 > length) {
         return BASICVECTOR_INVALID_INDEX;
     }
