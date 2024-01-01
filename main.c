@@ -521,6 +521,40 @@ void test_if_basicvector_find_returns_memory_error_when_vector_is_null() {
     pass("basicvector_find returns memory error when vector is null");
 }
 
+bool search_function_test_if_basicvector_find_returns_invalid_argument_error_when_result_argument_is_null(void *item, void *user_data) {
+    // silence the compiler
+    item = item;
+    user_data = user_data;
+
+    return false;
+}
+
+void test_if_basicvector_find_returns_invalid_argument_error_when_result_argument_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    expect_status(basicvector_find(vector, NULL, search_function_test_if_basicvector_find_returns_invalid_argument_error_when_result_argument_is_null, NULL), BASICVECTOR_INVALID_ARGUMENT);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find returns invalid argument error when result argument is null");
+}
+
+void test_if_basicvector_find_returns_invalid_argument_error_when_search_function_is_null() {
+    struct basicvector_s *vector;
+
+    expect_status_success(basicvector_init(&vector));
+
+    void *result;
+
+    expect_status(basicvector_find(vector, &result, NULL, NULL), BASICVECTOR_INVALID_ARGUMENT);
+
+    expect_status_success(basicvector_free(vector, NULL, NULL));
+
+    pass("basicvector_find returns invalid argument error when search function is null");
+}
+
 bool search_function__passes_valid_user_data_pointer(void *item, void *user_data) {
     // silence the compiler
     item = item;
@@ -1165,6 +1199,8 @@ int main() {
 
     // find
     test_if_basicvector_find_returns_memory_error_when_vector_is_null();
+    test_if_basicvector_find_returns_invalid_argument_error_when_result_argument_is_null();
+    test_if_basicvector_find_returns_invalid_argument_error_when_search_function_is_null();
     test_if_basicvector_find_passes_valid_user_data_pointer_to_search_function();
     test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_is_empty();
     test_if_basicvector_find_returns_item_not_found_and_assigns_null_to_result_when_vector_has_items_and_search_function_does_not_match_any_items();

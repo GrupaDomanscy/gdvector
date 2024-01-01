@@ -137,8 +137,7 @@ int basicvector_find(
     void *user_data
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
-    // TODO: result argument is not checked against NULL, might segment fault
-    // TODO: search function is not checked against NULL, might segment fault
+    if (result == NULL || search_function == NULL) return BASICVECTOR_INVALID_ARGUMENT;
 
     if (vector->starting_entry == NULL) {
         *result = NULL;
