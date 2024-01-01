@@ -181,6 +181,8 @@ int basicvector_set(
 ) {
     if (vector == NULL) return BASICVECTOR_MEMORY_ERROR;
 
+    // TODO: item ptr is not checked against null, might segment fault
+
     if (index < 0) {
         return BASICVECTOR_INVALID_INDEX;
     }

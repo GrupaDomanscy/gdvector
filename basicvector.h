@@ -107,6 +107,24 @@ int basicvector_find(
  */
 int basicvector_length(struct basicvector_s *vector, int *result);
 
+/*
+ * Sets item as given index inside the vector
+ *
+ * Params:
+ *  vector                  - Pointer to vector structure
+ *  index                   - Index that you want to set the item into
+ *  item                    - Item that you want to set inside the vector
+ *  deallocation_function   - Function callback used to deallocate items inside the vector. If there is already an item under given index inside the vector, this function will be used to deallocate it. First argument is item to deallocate, second one is context data that you can pass by specyfing user_data arg (see user_data argument in basicvector_set function). If passed null as deallocation function, the execution of the callback will be omitted.
+ *  user_data               - Context data for deallocation function (see deallocation_function arg in basicvector_set function)
+ *
+ * Warning:
+ *  This function will fill items with null ptrs before the provided index if they do not exist. For ex. if you have 2 items in the vector, and you pass index 5 to this function, the vector will look like: SOME_ITEM, SOME_ITEM, NULL_PTR, NULL_PTR, YOUR_NEW_ITEM.
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - returned if vector is null or if error occured while allocating memory
+ *  BASICVECTOR_INVALID_INDEX   - returned if passed index is below 0
+ *  BASICVECTOR_SUCCESS         - returned if everything went ok 
+ */
 int basicvector_set(
     struct basicvector_s *vector, 
     int index,
