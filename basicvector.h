@@ -154,6 +154,18 @@ int basicvector_remove(
     void *user_data
 );
 
+/*
+ * Frees memory of vector structure and its items
+ *
+ * Params:
+ *  vector                  - Pointer to vector structure
+ *  deallocation_function   - Function callback used to deallocate items inside the vector. First argument is item to deallocate, second one is context data that you can pass by specyfing user_data arg (see user_data argument in basicvector_free function). If passed null as deallocation function, the execution of the callback will be omitted.
+ *  user_data               - Context data for deallocation function (see deallocation_function arg in basicvector_free function)
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - returned if vector is null
+ *  BASICVECTOR_SUCCESS         - returned if everything went ok
+ */
 int basicvector_free(struct basicvector_s *vector, void (*deallocation_function)(void *item, void *user_data), void *user_data);
 
 #endif //BASICVECTOR_VECTOR_H_
