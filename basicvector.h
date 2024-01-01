@@ -84,6 +84,7 @@ int basicvector_find_index(
  *
  * Returns:
  *  BASICVECTOR_MEMORY_ERROR        - returned if passed vector is NULL
+ *  BASICVECTOR_INVALID_ARGUMENT    - returned if passed result or search_function is NULL
  *  BASICVECTOR_ITEM_NOT_FOUND      - returned if vector does not have any items or when item has not been found
  *  BASICVECTOR_SUCCESS             - returned if everything went ok
  */
@@ -102,8 +103,9 @@ int basicvector_find(
  *  result  - Pointer to int variable that will receive the count
  *
  * Returns:
- *  BASICVECTOR_MEMORY_ERROR    - received when vector is null
- *  BASICVECTOR_SUCCESS         - received when everything went ok
+ *  BASICVECTOR_MEMORY_ERROR        - received when vector is null
+ *  BASICVECTOR_INVALID_ARGUMENT    - received when passed result ptr is null
+ *  BASICVECTOR_SUCCESS             - received when everything went ok
  */
 int basicvector_length(struct basicvector_s *vector, int *result);
 
