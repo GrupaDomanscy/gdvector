@@ -11,6 +11,16 @@
 
 struct basicvector_s;
 
+/*
+ * Initialize vector structure
+ *
+ * Params:
+ *  vector  - Pointer to pointer to vector structure
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - Returned if error occured while trying to allocate memory dynamically (if malloc failed)
+ *  BASICVECTOR_SUCCESS         - If everything went ok
+ */
 int basicvector_init(struct basicvector_s **vector);
 
 int basicvector_push(struct basicvector_s *vector, void *item);
