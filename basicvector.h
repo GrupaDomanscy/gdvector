@@ -133,6 +133,20 @@ int basicvector_set(
     void *user_data
 );
 
+/*
+ * Removes item of given index from the vector
+ *
+ * Params:
+ *  vector                  - Pointer to vector instance
+ *  index                   - Index of item that you want to remove from the vector
+ *  deallocation_function   - Function callback used to deallocate items inside the vector. First argument is item to deallocate, second one is context data that you can pass by specyfing user_data arg (see user_data argument in basicvector_set function). If passed null as deallocation function, the execution of the callback will be omitted.
+ *  user_data               - Context data for deallocation function (see deallocation_function arg in basicvector_set function)
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - returned if vector is null
+ *  BASICVECTOR_INVALID_INDEX   - returned if index does not exist inside the vector or if index is less than 0
+ *  BASICVECTOR_SUCCESS         - returned if everything went ok
+ */
 int basicvector_remove(
     struct basicvector_s *vector, 
     int index, 
