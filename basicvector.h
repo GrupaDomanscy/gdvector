@@ -36,6 +36,19 @@ int basicvector_init(struct basicvector_s **vector);
  */
 int basicvector_push(struct basicvector_s *vector, void *item);
 
+/*
+ * Get item from basicvector structure
+ *
+ * Params:
+ *  vector  - Pointer to vector structure
+ *  index   - Index of item
+ *  result  - Pointer to variable that will receive the item
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - returned if vector is NULL
+ *  BASICVECTOR_ITEM_NOT_FOUND  - returned if item with given index does not exist
+ *  BASICVECTOR_SUCCESS         - returned if everything went ok and value has been set to pointer under result argument
+ */
 int basicvector_get(struct basicvector_s *vector, int index, void **result);
 
 int basicvector_find_index(
