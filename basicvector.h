@@ -23,6 +23,17 @@ struct basicvector_s;
  */
 int basicvector_init(struct basicvector_s **vector);
 
+/*
+ * Push item to vector structure
+ *
+ * Params:
+ *  vector  - Pointer to vector structure
+ *  item    - Item to push
+ *
+ * Returns:
+ *  BASICVECTOR_MEMORY_ERROR    - returned if error occured while tried to allocate memory dynamically (if malloc failed)
+ *  BASICVECTOR_SUCCESS         - returned if everything went ok
+ */
 int basicvector_push(struct basicvector_s *vector, void *item);
 
 int basicvector_get(struct basicvector_s *vector, int index, void **result);
